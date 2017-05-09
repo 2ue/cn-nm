@@ -1,6 +1,5 @@
 # cn-nm
-> 一个简单的中文和数字互转工具
-
+> A tool is that can inner-transformation number and chinnese.
 
 [中文](https://github.com/2ue/cn-nm) | [English](./README_en.md)
 
