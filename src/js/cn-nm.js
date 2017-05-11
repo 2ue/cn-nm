@@ -86,9 +86,6 @@ function jionNum (_NUM) {
     return reslt.replace(REG_DEL_REPEAT,'$1') + (!numArray[1] ? '' : (POINT + switchDecimal(numArray[1])));
 };
 
-// console.log(jionNum('300000000056747740230023050789.889909000'));
-//三十穰零五千六百七十四京七千七百四十兆二千三百亿二千三百零五万零七百八十九点八八九九零九
-
 //转换成数字
 //分割整数和小数部分
 function dealHz(_HZ){
@@ -165,12 +162,9 @@ function jionHz(_HZ){
     });
     return res + decimalPart;
 };
-// console.log(jionHz('三十穰零五千六百七十四京七千七百四十兆二千三百亿二千三百零五万零七百八十九点八八九九零九'))
-//期望：300000000056747740230023050789.889909
-//实际：30000000005674774023002305789.889909
 
 //向外提供接口
 module.exports = {
-    toHz: jionNum,
-    toNum: jionHz
+    toCn: jionNum,
+    toNm: jionHz
 };
