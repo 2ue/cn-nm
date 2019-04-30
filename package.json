@@ -1,8 +1,8 @@
 {
   "name": "cn-nm",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A tool is that can inner-transformation number and Chinese",
-  "main": "src/js/cn-nm.js",
+  "main": "src/cn-nm.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "pub": "npm publish"
