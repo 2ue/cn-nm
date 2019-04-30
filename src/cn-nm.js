@@ -14,8 +14,6 @@ var REG_DEL_REPEAT = /(.)\1+/g;
 var REG_SPLIT_LEN = /(\d{4}(?=\d)(?!\d+\.|$))/g;
 //反向四位分割字符串
 var REG_SPLIT_LEN_R = /(\d{1,4})(?=(?:\d{4})+(?!\d))/g;
-// 整数的结尾
-var INTEGER_END = '整'
 
 //转换成汉字
 //分割整数和小数部分
@@ -162,12 +160,8 @@ function joinHz(_HZ){
         var temp = switchHz(n);
         res = res + '' + temp;
     });
-    if (_HZ.length === 1) {
-        return res + INTEGER_END
-    }
     return res + decimalPart;
 };
-
 //向外提供接口
 module.exports = {
     toCn: joinNum,
