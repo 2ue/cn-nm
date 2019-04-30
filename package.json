@@ -1,7 +1,7 @@
 {
   "name": "cn-nm",
-  "version": "0.0.5",
-  "description": "A tool is that can inner-transformation number and Chinese",
+  "version": "0.0.6",
+  "description": "A tool is that can inner-transformation Number and Chinese",
   "main": "src/cn-nm.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
