@@ -5,6 +5,7 @@
 ;
 //设置一些默认参数
 var UNIT_ARRAY = ['千','百','十'];
+var UNIT_ARRAY_OlD = ['拾']
 var POINT = '点';
 // var NUM_ARRAY = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 var NUM_ARRAY = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
@@ -42,7 +43,6 @@ function switchNum(_NUM, _index){
     var num = _NUM.split('').reverse().concat([0,0,0,0]).splice(0,4).reverse();
     num.map(function(n,i){
         if(!n || n == 0){
-            console.log('yyyyy==>', n, num[i + 1])
             res.push((num[i+1] == 0 || !num[i+1] || _isFirst) ? '' : NUM_ARRAY[n]);
         }else{
             res.push(NUM_ARRAY[n] + (n > 0 && i < 3 ? UNIT_ARRAY[i] : ''));
@@ -83,8 +83,10 @@ function joinNum (_NUM) {
             reslt += (temp + NUM_UNIT_ARRAY[len - i - 2]);
         }
     });
-
-    return reslt.replace(REG_DEL_REPEAT,'$1') + (!numArray[1] ? '' : (POINT + switchDecimal(numArray[1])));
+    reslt = reslt.replace(REG_DEL_REPEAT,'$1') + (!numArray[1] ? '' : (POINT + switchDecimal(numArray[1])))
+    reslt = reslt.replace(new RegExp(`${NUM_ARRAY[1]}${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY[2])
+        // .replace(new RegExp(`${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY_OlD[0])
+    return reslt;
 };
 
 //转换成数字
@@ -163,9 +165,6 @@ function joinHz(_HZ){
     });
     return res + decimalPart;
 };
-
-// console.log('CNNM.toCn(\'300000000056747740230023050789\');==>', joinNum('10023050789'))
-console.log('CNNM.toCn(\'300000000056747740230023050789\');==>', joinNum('470002300.23050789'))
 
 //向外提供接口
 module.exports = {
