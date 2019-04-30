@@ -33,7 +33,6 @@ function splitNum(_NUM, _len, _type){
 function switchNum(_NUM, _index){
     // num 需要转换的数字
     //_isFirst 是否为首位
-
     var _isFirst = !!_index;
     //最终返回结果的数组
     var res = [];
@@ -41,8 +40,8 @@ function switchNum(_NUM, _index){
     //不足四位的补足四位，以便补零
     var num = _NUM.split('').reverse().concat([0,0,0,0]).splice(0,4).reverse();
     num.map(function(n,i){
-        if(!n || n === 0){
-            res.push((num[i+1] === 0 || !num[i+1] || _isFirst) ? '' : NUM_ARRAY[n]);
+        if(!n || n == 0){
+            res.push((num[i+1] == 0 || !num[i+1] || _isFirst) ? '' : NUM_ARRAY[n]);
         }else{
             res.push(NUM_ARRAY[n] + (n > 0 && i < 3 ? UNIT_ARRAY[i] : ''));
         }
@@ -57,8 +56,8 @@ function switchDecimal(_NUM){
     var res = [];
     var num = _NUM.split('');
     num.map(function(n,i){
-        if(!n || n === 0){
-            res.push((num[i+1] === 0 || !num[i+1]) ? '' : NUM_ARRAY[n]);
+        if(!n || n == 0){
+            res.push((num[i+1] == 0 || !num[i+1]) ? '' : NUM_ARRAY[n]);
         }else{
             res.push(NUM_ARRAY[n]);
         }
@@ -74,9 +73,9 @@ function joinNum (_NUM) {
     var len = num.length;
     var reslt = '';
     num.map(function(n,i){
-        var temp = switchNum(n, i === 0);
+        var temp = switchNum(n, i == 0);
         if(!temp) temp = NUM_ARRAY[0];
-        if(len - 1 === i || temp === NUM_ARRAY[0]){
+        if(len - 1 == i || temp == NUM_ARRAY[0]){
             reslt += temp;
         }else{
             reslt += (temp + NUM_UNIT_ARRAY[len - i - 2]);
@@ -115,7 +114,7 @@ function splitHz(_HZ){
 
         }else{
             temp += n;
-            if(i === _HZ.length - 1) res.push(temp);
+            if(i == _HZ.length - 1) res.push(temp);
         }
     });
     return res;
@@ -123,14 +122,14 @@ function splitHz(_HZ){
 
 function switchHz(_HZ){
     if(!_HZ) return '';
-    if(_HZ === NUM_ARRAY[0]) return '0000';
+    if(_HZ == NUM_ARRAY[0]) return '0000';
     _HZ = _HZ.split('');
     var res = 0;
     var temp = 0;
     _HZ.map(function(n,i){
-        if(i % 2 === 0){
+        if(i % 2 == 0){
             temp = NUM_ARRAY.indexOf(n);
-            if(i === _HZ.length - 1) res += temp;
+            if(i == _HZ.length - 1) res += temp;
         }else{
             var z = 3 - UNIT_ARRAY.indexOf(n);
             res += (temp * Math.pow(10,z));
@@ -151,7 +150,7 @@ function switchDecimalHz(_HZ){
 };
 
 function joinHz(_HZ){
-    if(!_HZ || _HZ === NUM_ARRAY[0]) return 0;
+    if(!_HZ || _HZ == NUM_ARRAY[0]) return 0;
     _HZ = dealHz(_HZ);
     var HZ_ARRAY = splitHz(_HZ[0]);
     var decimalPart = switchDecimalHz(_HZ[1]);
@@ -162,6 +161,7 @@ function joinHz(_HZ){
     });
     return res + decimalPart;
 };
+
 //向外提供接口
 module.exports = {
     toCn: joinNum,
