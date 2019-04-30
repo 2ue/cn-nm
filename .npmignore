@@ -1,0 +1,7 @@
+.git
+.idea
+.project
+.vscode
+.history
+.log
+node_modules/*
