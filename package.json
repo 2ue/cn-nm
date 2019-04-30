@@ -1,0 +1,29 @@
+{
+  "name": "cn-nm",
+  "version": "0.0.1",
+  "description": "A tool is that can inner-transformation number and Chinese",
+  "main": "src/js/cn-nm.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pub": "npm publish"
+  },
+  "keywords": [
+    "Chinese",
+    "Nmuber",
+    "transformation"
+  ],
+  "author": {
+    "name": "2ue",
+    "email": "jie746635835@163.com"
+  },
+  "homepage": "https://github.com/2ue/cn-nm",
+  "repository": {
+    "type": "git",
+    "ssh": "git@github.com:2ue/cn-nm.git",
+    "url": "https://github.com/2ue/cn-nm.git"
+  },
+  "bugs": {
+    "url": "https://github.com/2ue/cn-nm/issues"
+  },
+  "license": "MIT"
+}

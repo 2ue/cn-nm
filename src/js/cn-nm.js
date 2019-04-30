@@ -1,7 +1,7 @@
-//阿拉伯数字转换为中文 
-
-// 如数值过大，建议以字符串的形式传入
-
+/**
+ * @function: 阿拉伯数字与中文互相转换
+ * 如数值过大，建议以字符串的形式传入
+ * */
 ;
 //设置一些默认参数
 var UNIT_ARRAY = ['千','百','十'];
@@ -23,17 +23,17 @@ function dealNum(_NUM){
 };
 
 //每四位分割成一组
-function splitNum(_NUM,_len,_type){
+function splitNum(_NUM, _len, _type){
     if(!_NUM || isNaN(_NUM)) return [];
     return _NUM.replace(REG_SPLIT_LEN_R,'$1,').split(',');
 
 };
 
 //转化四位数为汉字，加上单位
-function switchNum(_NUM,_index){
+function switchNum(_NUM, _index){
     // num 需要转换的数字
     //_isFirst 是否为首位
-    
+
     var _isFirst = !!_index;
     //最终返回结果的数组
     var res = [];
@@ -41,12 +41,12 @@ function switchNum(_NUM,_index){
     //不足四位的补足四位，以便补零
     var num = _NUM.split('').reverse().concat([0,0,0,0]).splice(0,4).reverse();
     num.map(function(n,i){
-        if(!n || n == 0){
-            res.push((num[i+1] == 0 || !num[i+1] || _isFirst) ? '' : NUM_ARRAY[n]);
+        if(!n || n === 0){
+            res.push((num[i+1] === 0 || !num[i+1] || _isFirst) ? '' : NUM_ARRAY[n]);
         }else{
             res.push(NUM_ARRAY[n] + (n > 0 && i < 3 ? UNIT_ARRAY[i] : ''));
         }
-        
+
     });
     return res.join('').replace(REG_DEL_REPEAT,'$1');
 
@@ -57,12 +57,12 @@ function switchDecimal(_NUM){
     var res = [];
     var num = _NUM.split('');
     num.map(function(n,i){
-        if(!n || n == 0){
-            res.push((num[i+1] == 0 || !num[i+1]) ? '' : NUM_ARRAY[n]);
+        if(!n || n === 0){
+            res.push((num[i+1] === 0 || !num[i+1]) ? '' : NUM_ARRAY[n]);
         }else{
             res.push(NUM_ARRAY[n]);
         }
-        
+
     });
     return res.join('');
 };
@@ -74,9 +74,9 @@ function jionNum (_NUM) {
     var len = num.length;
     var reslt = '';
     num.map(function(n,i){
-        var temp = switchNum(n,i == 0);
+        var temp = switchNum(n, i === 0);
         if(!temp) temp = NUM_ARRAY[0];
-        if(len - 1 == i || temp == NUM_ARRAY[0]){
+        if(len - 1 === i || temp === NUM_ARRAY[0]){
             reslt += temp;
         }else{
             reslt += (temp + NUM_UNIT_ARRAY[len - i - 2]);
@@ -103,19 +103,19 @@ function splitHz(_HZ){
     _HZ.map(function(n,i){
         var thisLocation = NUM_UNIT_ARRAY.indexOf(n);
         if(thisLocation >= 0){
-            
+
             if(thisLocation - location < -1){
                 for(let loc = 1; loc < location - thisLocation; loc ++){
                     res.push(NUM_ARRAY[0]);
-                }  
+                }
             };
             res.push(temp);
             temp = '';
             location = thisLocation;
-            
+
         }else{
             temp += n;
-            if(i == _HZ.length - 1) res.push(temp);
+            if(i === _HZ.length - 1) res.push(temp);
         }
     });
     return res;
@@ -123,14 +123,14 @@ function splitHz(_HZ){
 
 function switchHz(_HZ){
     if(!_HZ) return '';
-    if(_HZ == NUM_ARRAY[0]) return '0000';
+    if(_HZ === NUM_ARRAY[0]) return '0000';
     _HZ = _HZ.split('');
     var res = 0;
     var temp = 0;
     _HZ.map(function(n,i){
-        if(i % 2 == 0){
+        if(i % 2 === 0){
             temp = NUM_ARRAY.indexOf(n);
-            if(i == _HZ.length - 1) res += temp;
+            if(i === _HZ.length - 1) res += temp;
         }else{
             var z = 3 - UNIT_ARRAY.indexOf(n);
             res += (temp * Math.pow(10,z));
@@ -151,7 +151,7 @@ function switchDecimalHz(_HZ){
 };
 
 function jionHz(_HZ){
-    if(!_HZ || _HZ == NUM_ARRAY[0]) return 0;
+    if(!_HZ || _HZ === NUM_ARRAY[0]) return 0;
     _HZ = dealHz(_HZ);
     var HZ_ARRY = splitHz(_HZ[0]);
     var decimalPart = switchDecimalHz(_HZ[1]);
