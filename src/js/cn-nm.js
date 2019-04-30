@@ -14,6 +14,8 @@ var REG_DEL_REPEAT = /(.)\1+/g;
 var REG_SPLIT_LEN = /(\d{4}(?=\d)(?!\d+\.|$))/g;
 //反向四位分割字符串
 var REG_SPLIT_LEN_R = /(\d{1,4})(?=(?:\d{4})+(?!\d))/g;
+// 整数的结尾
+var INTEGER_END = '整'
 
 //转换成汉字
 //分割整数和小数部分
@@ -68,7 +70,7 @@ function switchDecimal(_NUM){
 };
 
 //拼接
-function jionNum (_NUM) {
+function joinNum (_NUM) {
     var numArray = dealNum(_NUM);
     var num = splitNum(numArray[0]);
     var len = num.length;
@@ -150,21 +152,24 @@ function switchDecimalHz(_HZ){
     return res.join('');
 };
 
-function jionHz(_HZ){
+function joinHz(_HZ){
     if(!_HZ || _HZ === NUM_ARRAY[0]) return 0;
     _HZ = dealHz(_HZ);
-    var HZ_ARRY = splitHz(_HZ[0]);
+    var HZ_ARRAY = splitHz(_HZ[0]);
     var decimalPart = switchDecimalHz(_HZ[1]);
     var res = '';
-    HZ_ARRY.map(function(n){
+    HZ_ARRAY.map(function(n){
         var temp = switchHz(n);
         res = res + '' + temp;
     });
+    if (_HZ.length === 1) {
+        return res + INTEGER_END
+    }
     return res + decimalPart;
 };
 
 //向外提供接口
 module.exports = {
-    toCn: jionNum,
-    toNm: jionHz
+    toCn: joinNum,
+    toNm: joinHz
 };
