@@ -5,7 +5,7 @@
  * */
 ;
 //设置一些默认参数
-var UNIT_ARRAY = ['千','百','十'];
+var UNIT_ARRAY = ['仟','佰','拾'];
 var UNIT_ARRAY_OlD = ['拾']
 var POINT = '点';
 // var NUM_ARRAY = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
@@ -85,7 +85,7 @@ function joinNum (_NUM) {
         }
     });
     reslt = reslt.replace(REG_DEL_REPEAT,'$1') + (!numArray[1] ? '' : (POINT + switchDecimal(numArray[1])))
-    reslt = reslt.replace(new RegExp(`${NUM_ARRAY[1]}${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY[2])
+    // reslt = reslt.replace(new RegExp(`${NUM_ARRAY[1]}${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY[2])
         // .replace(new RegExp(`${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY_OlD[0])
     return reslt;
 };
@@ -164,7 +164,7 @@ function joinHz(_HZ){
     });
     return res + decimalPart;
 };
-
+console.log(joinNum('710'))
 //向外提供接口
 module.exports = {
     toCn: joinNum,
