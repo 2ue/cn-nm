@@ -1,3 +1,4 @@
+'use strict'
 /**
  * @function: 阿拉伯数字与中文互相转换
  * 如数值过大，建议以字符串的形式传入
@@ -106,16 +107,14 @@ function splitHz(_HZ){
     _HZ.map(function(n,i){
         var thisLocation = NUM_UNIT_ARRAY.indexOf(n);
         if(thisLocation >= 0){
-
             if(thisLocation - location < -1){
-                for(let loc = 1; loc < location - thisLocation; loc ++){
+                for(var loc = 1; loc < location - thisLocation; loc ++){
                     res.push(NUM_ARRAY[0]);
                 }
             };
             res.push(temp);
             temp = '';
             location = thisLocation;
-
         }else{
             temp += n;
             if(i == _HZ.length - 1) res.push(temp);
