@@ -164,7 +164,6 @@ function joinHz(_HZ){
     });
     return res + decimalPart;
 };
-console.log(joinNum('710'))
 //向外提供接口
 module.exports = {
     toCn: joinNum,
