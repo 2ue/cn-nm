@@ -19,9 +19,22 @@ var REG_SPLIT_LEN = /(\d{4}(?=\d)(?!\d+\.|$))/g;
 var REG_SPLIT_LEN_R = /(\d{1,4})(?=(?:\d{4})+(?!\d))/g;
 
 //转换成汉字
+
+/**
+* 格式化数字，方便后续处理
+* */
+
+function formatNum(_NUM) {
+    // 过滤掉不是数字的字符
+    if (isNaN(_NUM)) return ''
+    // 把类1.0，1.00格式的数字处理成1
+    if (_NUM === parseInt(_NUM)) return parseInt(_NUM)
+}
+
 //分割整数和小数部分
 function dealNum(_NUM){
-    if(!_NUM || isNaN(_NUM)) return [];
+    var _NUM = formatNum(_NUM)
+    if(!_NUM) return [];
     return _NUM.split('.');
 };
 
@@ -145,6 +158,7 @@ function switchHz(_HZ){
 function switchDecimalHz(_HZ){
     if(!_HZ) return '';
     _HZ = _HZ.split('');
+    if(_HZ.length === 0) return '';
     var res = ['.'];
     _HZ.map(function(n){
         res.push(NUM_ARRAY.indexOf(n));
