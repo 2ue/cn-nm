@@ -23,23 +23,23 @@ var REG_SPLIT_LEN_R = /(\d{1,4})(?=(?:\d{4})+(?!\d))/g;
 /**
 * 格式化数字，方便后续处理
 * */
-
 function formatNum(_NUM) {
     // 过滤掉不是数字的字符
-    if (isNaN(_NUM)) return ''
+    if (!_NUM || isNaN(_NUM)) return ''
     // 把类1.0，1.00格式的数字处理成1
-    if (_NUM === parseInt(_NUM)) return parseInt(_NUM)
+    // 统一转成字符串
+    if (+_NUM === parseInt(_NUM)) return String(parseInt(_NUM))
+    return String(_NUM)
 }
 
 //分割整数和小数部分
 function dealNum(_NUM){
     _NUM = formatNum(_NUM)
-    if(!_NUM) return [];
     return _NUM.split('.');
 };
 
 //每四位分割成一组
-function splitNum(_NUM, _len, _type){
+function splitNum(_NUM){
     if(!_NUM || isNaN(_NUM)) return [];
     return _NUM.replace(REG_SPLIT_LEN_R,'$1,').split(',');
 
