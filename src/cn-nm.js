@@ -33,7 +33,7 @@ function formatNum(_NUM) {
 
 //分割整数和小数部分
 function dealNum(_NUM){
-    var _NUM = formatNum(_NUM)
+    _NUM = formatNum(_NUM)
     if(!_NUM) return [];
     return _NUM.split('.');
 };
