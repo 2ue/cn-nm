@@ -11,7 +11,8 @@ var POINT = '点';
 // var NUM_ARRAY = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 var NUM_ARRAY = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
 var NUM_UNIT_ARRAY = ['万', '亿', '兆', '京', '垓', '秭', '穰', '沟', '涧', '正', '载', '极', '恒河沙', '阿僧祗', '那由他', '不可思议', '无量', '大数'];
-var MONEY_UINT = ['圆', '角', '分']
+var MONEY_UINT_1 = ['圆', '圆整']
+var MONEY_UINT_2 = ['角', '分']
 //匹配连续重复字符
 var REG_DEL_REPEAT = /(.)\1+/g;
 //正向四位分割字符串
@@ -67,9 +68,27 @@ function switchNum(_NUM, _index){
     return res.join('').replace(REG_DEL_REPEAT,'$1');
 
 };
+//转化所有整数部分为汉字
+function switchAllNum (_NUM) {
+    var num = splitNum(_NUM);
+    var len = num.length;
+    var result = '';
+    num.map(function(n,i){
+        var temp = switchNum(n, i == 0);
+        if(!temp) temp = NUM_ARRAY[0];
+        if(len - 1 == i || temp == NUM_ARRAY[0]){
+            result += temp;
+        }else{
+            result += (temp + NUM_UNIT_ARRAY[len - i - 2]);
+        }
+    });
+    result = result.replace(REG_DEL_REPEAT,'$1')
+    return result;
+};
+
 //转换小数部分
 function switchDecimal(_NUM){
-    if(!_NUM) return;
+    if(!_NUM) return '';
     var res = [];
     var num = _NUM.split('');
     num.map(function(n,i){
@@ -83,25 +102,34 @@ function switchDecimal(_NUM){
     return res.join('');
 };
 
+// 小数位转换成圆角分
+function switchDecimalToMoney(_NUM){
+    var num = switchDecimal(_NUM).split('')
+    var res = []
+    MONEY_UINT_2.map((unit, i) => {
+        if (unit && num[i] && NUM_ARRAY.indexOf(num[i]) > 0) res.push(num[i] + unit)
+    })
+    return res.join('');
+};
+
 //拼接
 function joinNum (_NUM) {
     var numArray = dealNum(_NUM);
-    var num = splitNum(numArray[0]);
-    var len = num.length;
-    var reslt = '';
-    num.map(function(n,i){
-        var temp = switchNum(n, i == 0);
-        if(!temp) temp = NUM_ARRAY[0];
-        if(len - 1 == i || temp == NUM_ARRAY[0]){
-            reslt += temp;
-        }else{
-            reslt += (temp + NUM_UNIT_ARRAY[len - i - 2]);
-        }
-    });
-    reslt = reslt.replace(REG_DEL_REPEAT,'$1') + (!numArray[1] ? '' : (POINT + switchDecimal(numArray[1])))
-    // reslt = reslt.replace(new RegExp(`${NUM_ARRAY[1]}${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY[2])
-        // .replace(new RegExp(`${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY_OlD[0])
-    return reslt;
+    var result = switchAllNum(numArray[0]) + (!numArray[1] ? '' : (POINT + switchDecimal(numArray[1])))
+    // result = result.replace(new RegExp(`${NUM_ARRAY[1]}${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY[2])
+    // .replace(new RegExp(`${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY_OlD[0])
+    return result;
+};
+
+// 两位数money
+function joinMoney (_NUM) {
+    var numArray = dealNum(_NUM);
+    var integerPart = switchAllNum(numArray[0])
+    var decimalPart = switchDecimalToMoney(numArray[1])
+    var result = decimalPart ? integerPart + MONEY_UINT_1[0] + decimalPart : integerPart + MONEY_UINT_1[1]
+    // result = result.replace(new RegExp(`${NUM_ARRAY[1]}${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY[2])
+    // .replace(new RegExp(`${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY_OlD[0])
+    return result;
 };
 
 //转换成数字
@@ -144,9 +172,9 @@ function switchHz(_HZ){
     var res = 0;
     var temp = 0;
     _HZ.map(function(n,i){
-        if(i % 2 == 0){
+        if(i % 2 === 0){
             temp = NUM_ARRAY.indexOf(n);
-            if(i == _HZ.length - 1) res += temp;
+            if(i === _HZ.length - 1) res += temp;
         }else{
             var z = 3 - UNIT_ARRAY.indexOf(n);
             res += (temp * Math.pow(10,z));
@@ -179,6 +207,7 @@ function joinHz(_HZ){
     });
     return res + decimalPart;
 };
+
 //向外提供接口
 module.exports = {
     toCn: joinNum,
