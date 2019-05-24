@@ -211,5 +211,6 @@ function joinHz(_HZ){
 //向外提供接口
 module.exports = {
     toCn: joinNum,
+    toMoney: joinMoney,
     toNm: joinHz
 };
