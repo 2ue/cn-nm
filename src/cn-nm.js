@@ -5,8 +5,8 @@
  * */
 ;
 //设置一些默认参数
-var UNIT_ARRAY = ['仟','佰','拾'];
-var UNIT_ARRAY_OlD = ['拾'];
+var UNIT_ARRAY = ['仟', '佰', '拾'];
+// var UNIT_ARRAY_OlD = ['拾'];
 var POINT = '点';
 // var NUM_ARRAY = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 var NUM_ARRAY = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
@@ -16,15 +16,15 @@ var MONEY_UINT_2 = ['角', '分'];
 // 匹配连续重复字符
 var REG_DEL_REPEAT = /(.)\1+/g;
 // 正向四位分割字符串
-var REG_SPLIT_LEN = /(\d{4}(?=\d)(?!\d+\.|$))/g;
+// var REG_SPLIT_LEN = /(\d{4}(?=\d)(?!\d+\.|$))/g;
 // 反向四位分割字符串
 var REG_SPLIT_LEN_R = /(\d{1,4})(?=(?:\d{4})+(?!\d))/g;
 
 // 转换成汉字
 
 /**
-* 格式化数字，方便后续处理
-* */
+ * 格式化数字，方便后续处理
+ * */
 function formatNum(_NUM) {
     // 过滤掉不是数字的字符
     if (!_NUM || isNaN(_NUM)) return '';
@@ -35,83 +35,83 @@ function formatNum(_NUM) {
 }
 
 //分割整数和小数部分
-function dealNum(_NUM){
+function dealNum(_NUM) {
     _NUM = formatNum(_NUM);
     return _NUM.split('.');
 };
 
 //每四位分割成一组
-function splitNum(_NUM){
-    if(!_NUM || isNaN(_NUM)) return [];
-    return _NUM.replace(REG_SPLIT_LEN_R,'$1,').split(',');
+function splitNum(_NUM) {
+    if (!_NUM || isNaN(_NUM)) return [];
+    return _NUM.replace(REG_SPLIT_LEN_R, '$1,').split(',');
 
 };
 
 //转化四位数为汉字，加上单位
-function switchNum(_NUM, _index){
+function switchNum(_NUM, _index) {
     // num 需要转换的数字
     //_isFirst 是否为首位
     var _isFirst = !!_index;
     //最终返回结果的数组
     var res = [];
-    if(!_NUM) return '';
+    if (!_NUM) return '';
     //不足四位的补足四位，以便补零
-    var num = _NUM.split('').reverse().concat([0,0,0,0]).splice(0,4).reverse();
-    num.map(function(n,i){
-        if(!n || n == 0){
-            res.push((num[i+1] == 0 || !num[i+1] || _isFirst) ? '' : NUM_ARRAY[n]);
-        }else{
+    var num = _NUM.split('').reverse().concat([0, 0, 0, 0]).splice(0, 4).reverse();
+    num.map(function (n, i) {
+        if (!n || n == 0) {
+            res.push((num[i + 1] == 0 || !num[i + 1] || _isFirst) ? '' : NUM_ARRAY[n]);
+        } else {
             res.push(NUM_ARRAY[n] + (n > 0 && i < 3 ? UNIT_ARRAY[i] : ''));
-        }
+        };
     });
-    return res.join('').replace(REG_DEL_REPEAT,'$1');
+    return res.join('').replace(REG_DEL_REPEAT, '$1');
 
 };
 //转化所有整数部分为汉字
-function switchAllNum (_NUM) {
+function switchAllNum(_NUM) {
     var num = splitNum(_NUM);
     var len = num.length;
     var result = '';
-    num.map(function(n,i) {
+    num.map(function (n, i) {
         var temp = switchNum(n, i == 0);
-        if(!temp) temp = NUM_ARRAY[0];
-        if(len - 1 == i || temp == NUM_ARRAY[0]){
+        if (!temp) temp = NUM_ARRAY[0];
+        if (len - 1 == i || temp == NUM_ARRAY[0]) {
             result += temp;
-        }else{
+        } else {
             result += (temp + NUM_UNIT_ARRAY[len - i - 2]);
-        }
+        };
     });
-    result = result.replace(REG_DEL_REPEAT,'$1');
+    result = result.replace(REG_DEL_REPEAT, '$1');
     return result;
 };
 
 //转换小数部分
 function switchDecimal(_NUM) {
-    if(!_NUM) return '';
+    if (!_NUM) return '';
     var res = [];
     var num = _NUM.split('');
-    num.map(function(n,i) {
-        if(!n || n == 0){
-            res.push((num[i+1] == 0 || !num[i+1]) ? '' : NUM_ARRAY[n]);
-        }else{
+    num.map(function (n, i) {
+        if (!n || n == 0) {
+            res.push((num[i + 1] == 0 || !num[i + 1]) ? '' : NUM_ARRAY[n]);
+        } else {
             res.push(NUM_ARRAY[n]);
-        }
+        };
     });
     return res.join('');
 };
 
 // 小数位转换成圆角分
-function switchDecimalToMoney(_NUM){
+function switchDecimalToMoney(_NUM) {
     var num = switchDecimal(_NUM).split('');
     var res = [];
-    MONEY_UINT_2.map((unit, i) => {
+    MONEY_UINT_2.map(function(unit, i) {
         if (unit && num[i] && NUM_ARRAY.indexOf(num[i]) > 0) res.push(num[i] + unit);
-    })
+    });
     return res.join('');
 };
 
 //拼接
-function joinNum (_NUM) {
+function joinNum(_NUM) {
     var numArray = dealNum(_NUM);
     var result = switchAllNum(numArray[0]) + (!numArray[1] ? '' : (POINT + switchDecimal(numArray[1])));
     // result = result.replace(new RegExp(`${NUM_ARRAY[1]}${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY[2])
@@ -120,7 +120,7 @@ function joinNum (_NUM) {
 };
 
 // 两位数money
-function joinMoney (_NUM) {
+function joinMoney(_NUM) {
     var numArray = dealNum(_NUM);
     var integerPart = switchAllNum(numArray[0]);
     var decimalPart = switchDecimalToMoney(numArray[1]);
@@ -132,74 +132,74 @@ function joinMoney (_NUM) {
 
 //转换成数字
 //分割整数和小数部分
-function dealHz(_HZ){
-    if(!_HZ) return [];
+function dealHz(_HZ) {
+    if (!_HZ) return [];
     return _HZ.split(POINT);
 };
 //分割成组
-function splitHz(_HZ){
-    if(!_HZ) return [0];
+function splitHz(_HZ) {
+    if (!_HZ) return [0];
     //去掉整数部分所有的'零'，然后分割
-    _HZ = _HZ.replace(/零/g,'').split('');
+    _HZ = _HZ.replace(/零/g, '').split('');
     var res = [];
     var temp = '';
-    var location = -10000;//设置一个超大数
-    _HZ.map(function(n, i) {
+    var location = -10000; //设置一个超大数
+    _HZ.map(function (n, i) {
         var thisLocation = NUM_UNIT_ARRAY.indexOf(n);
-        if(thisLocation >= 0){
-            if(thisLocation - location < -1){
-                for(var loc = 1; loc < location - thisLocation; loc ++){
+        if (thisLocation >= 0) {
+            if (thisLocation - location < -1) {
+                for (var loc = 1; loc < location - thisLocation; loc++) {
                     res.push(NUM_ARRAY[0]);
-                }
-            }
+                };
+            };
             res.push(temp);
             temp = '';
             location = thisLocation;
-        }else{
+        } else {
             temp += n;
-            if(i == _HZ.length - 1) res.push(temp);
-        }
+            if (i == _HZ.length - 1) res.push(temp);
+        };
     });
     return res;
 };
 
 function switchHz(_HZ) {
-    if(!_HZ) return '';
-    if(_HZ == NUM_ARRAY[0]) return '0000';
+    if (!_HZ) return '';
+    if (_HZ == NUM_ARRAY[0]) return '0000';
     _HZ = _HZ.split('');
     var res = 0;
     var temp = 0;
-    _HZ.map(function(n, i) {
-        if(i % 2 === 0){
+    _HZ.map(function (n, i) {
+        if (i % 2 === 0) {
             temp = NUM_ARRAY.indexOf(n);
-            if(i === _HZ.length - 1) res += temp;
+            if (i === _HZ.length - 1) res += temp;
         } else {
             var z = 3 - UNIT_ARRAY.indexOf(n);
-            res += (temp * Math.pow(10,z));
-        }
+            res += (temp * Math.pow(10, z));
+        };
     });
     return res;
 
 };
 //转换小数部分
 function switchDecimalHz(_HZ) {
-    if(!_HZ) return '';
+    if (!_HZ) return '';
     _HZ = _HZ.split('');
-    if(_HZ.length === 0) return '';
+    if (_HZ.length === 0) return '';
     var res = ['.'];
-    _HZ.map(function(n) {
+    _HZ.map(function (n) {
         res.push(NUM_ARRAY.indexOf(n));
     });
     return res.join('');
 };
 
-function joinHz(_HZ){
-    if(!_HZ || _HZ == NUM_ARRAY[0]) return 0;
+function joinHz(_HZ) {
+    if (!_HZ || _HZ == NUM_ARRAY[0]) return 0;
     _HZ = dealHz(_HZ);
     var HZ_ARRAY = splitHz(_HZ[0]);
     var decimalPart = switchDecimalHz(_HZ[1]);
     var res = '';
-    HZ_ARRAY.map(function(n) {
+    HZ_ARRAY.map(function (n) {
         var temp = switchHz(n);
         res = res + '' + temp;
     });
