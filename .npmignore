@@ -5,3 +5,5 @@
 .history
 .log
 node_modules/*
+src
+rollup.*.*

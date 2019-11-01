@@ -18,5 +18,3 @@ node_modules
 .vscode
 .idea
 .project
-
-dist/
