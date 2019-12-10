@@ -1,6 +1,39 @@
 /**
  * 数字转换成中文
+ * TODO：
+ * 配置参数
+ * OPTIONS: {
+ *     integer: {
+ *       largeNumber: false, // 是否支持大数(在js的Number范围内)，科学计数法兼容等，会把科学技术法的数字转换成对应字符串
+ *       onlyUseCommonUnit: false, // 为true，则只使用常见的单位，且截止到亿
+ *     },
+ *     decimal: {
+ *        allowLastZero: false,
+ *        toFixed: undefined,
+ *        format: 'round' // round四舍五入， floor向下舍入, ceil向上舍入
+ *     },
+ *     ch: {
+ *         simplify: true, // 把壹拾简写成拾
+ *     }
+ *
+ * }
  * */
+
+// 一些默认配置，可以被自定义配置覆盖
+const OPTIONS = {
+  integer: {
+    largeNumber: false,
+    onlyUseCommonUnit: false,
+  },
+  decimal: {
+    allowLastZero: false,
+    toFixed: undefined,
+    format: 'round', // round四舍五入， floor向下舍入, ceil向上舍入
+  },
+  ch: {
+    simplify: true, // 把壹拾简写成拾
+  },
+};
 
 // 单位对照表
 const NUMBER_UNIT_MAP = ['拾', '佰', '仟', '万', '亿', '兆', '京', '垓', '秭', '穰', '沟', '涧', '正', '载', '极', '恒河沙', '阿僧祗', '那由他', '不可思议', '无量', '大数'];
@@ -15,18 +48,23 @@ const REG_SPLIT_LEN_R = /(\d{1,4})(?=(?:\d{4})+(?!\d))/g;
 const POINT = ['点'];
 
 // 度量单位对照表
-// const MONEY_UINT_MAP = ['元', '元整', '角', '分'];
+const MONEY_UINT_MAP = ['元整', '元', '角', '分'];
 
-// 首位零正则
+// 匹配首位零
 const REG_FIRST_ZERO = new RegExp(`^${NUM_MAP[0]}`);
 
-// 末位零正则
+// 匹配末位零
 const REG_LAST_ZERO = new RegExp(`${NUM_MAP[0]}$`);
 
-// 连续零
+// 匹配连续零
 const REG_SEQUENCE_ZERO = new RegExp(`${NUM_MAP[0]}{2,}`, 'g');
 
-// 基础工具
+// 匹配壹拾: 把壹拾简写成拾
+const REG_SEQUENCE_TEN = new RegExp(`${NUM_MAP[1]}${NUMBER_UNIT_MAP[0]}`, 'g');
+
+/**
+ * 基础工具
+ * */
 const utils = {
   isNull: (param) => {
     return ['', undefined, NaN, null].includes(param);
@@ -74,14 +112,29 @@ const getUnit = (index, startIndex = -1) => {
  * 逐字转换
  * */
 const convertDecimal = (numStr) => {
+  if (utils.isNull(numStr)) return '';
   const numArr = numStr.split('');
-  // TODO：是否去除末位零？做成可配置？
 
   utils.forMap(numArr, (arr, i) => {
     numArr[i] = NUM_MAP[arr];
   });
 
   return [POINT, ...numArr].join('');
+};
+
+/**
+ * 转成小数部分为汉字
+ * 逐字转换
+ * */
+const convertDecimalMoney = (numStr) => {
+  if (utils.isNull(numStr)) return MONEY_UINT_MAP[0];
+  const numArr = numStr.substr(0, 2).split('');
+
+  utils.forMap(numArr, (arr, i) => {
+    numArr[i] = `${NUM_MAP[arr]}${MONEY_UINT_MAP[i + 2]}`;
+  });
+
+  return [MONEY_UINT_MAP[1], ...numArr].join('');
 };
 
 /**
@@ -121,7 +174,9 @@ const convertInteger = (numArr) => {
   const reverseNumArr = numArr.reverse();
   utils.forMap(reverseNumArr, (arr, i) => {
     const str = convertSection(arr);
-    reverseNumArr[i] = str ? [str, getUnit(i - 1, 3)].join('') : '';
+    // 倒数第一组不添加单位
+    const unit = i ? getUnit(i - 1, 3) : '';
+    reverseNumArr[i] = [str, unit].join('');
   });
 
   return reverseNumArr
@@ -132,6 +187,7 @@ const convertInteger = (numArr) => {
     .replace(REG_LAST_ZERO, '');
 };
 
+/* --------对外暴露方法-----------*/
 /**
  * 把数字转换成整数
  * TODO:
@@ -141,9 +197,27 @@ const convertCn = (num) => {
   // 分割成整数和小数部分
   const numArr = formatNum(num);
   // 转化小数部分
-  const decimalPart = utils.isNull(numArr[1]) ? '' : convertDecimal(numArr[1]);
+  const decimalPart = convertDecimal(numArr[1]);
   // 转化整数部分
   const integerPart = convertInteger(splitNumInteger(numArr[0]));
 
   return [integerPart, decimalPart].join('');
 };
+
+/**
+ * 把数字转换成整数
+ * TODO:
+ * 1、大数处理：科学计数转换/超过常规单位转换
+ * */
+const convertMoney = (num) => {
+  // 分割成整数和小数部分
+  const numArr = formatNum(num);
+  // 转化小数部分
+  const decimalPart = convertDecimalMoney(numArr[1]);
+  // 转化整数部分
+  const integerPart = convertInteger(splitNumInteger(numArr[0]));
+
+  return [integerPart, decimalPart].join('');
+};
+
+console.log('convertMoney===>', convertMoney(1234212711.233));
