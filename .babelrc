@@ -7,9 +7,8 @@
         "targets": {
           "browsers": [
             "> 1%",
-            "last 2 versions",
-            "ie >= 9",
-            "safari >= 9"
+            "last 5 versions",
+            "ie >= 9"
           ]
         },
         "useBuiltIns": "usage",
@@ -19,12 +18,28 @@
   ],
   "plugins": [
     [
-      "@babel/plugin-transform-runtime",
+      "@babel/plugin-transform-runtime"
+
+    ],
+    "@babel/plugin-syntax-dynamic-import",
+    [
+      "@babel/plugin-proposal-class-properties",
       {
-        "corejs": false,
-        "helpers": true,
-        "regenerator": false,
-        "useESModules": true
+        "loose": false
+      }
+    ],
+    [
+      "@babel/plugin-proposal-decorators",
+      {
+        "legacy": true
+      }
+    ],
+    "lodash",
+    [
+      "component",
+      {
+        "libraryName": "element-ui",
+        "styleLibraryName": "~common-module/assets/element-theme/theme"
       }
     ]
   ]

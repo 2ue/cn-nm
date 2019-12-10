@@ -5,8 +5,14 @@
   "main": "src/cn-nm.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "pub": "npm publish"
+    "pub": "npm publish",
+    "precommit-msg": "echo 'Pre-commit checks.........' && exit 0",
+    "lint": "eslint --ext .js --ext .vue ./ --fix && git add ."
   },
+  "pre-commit": [
+    "precommit-msg",
+    "lint"
+  ],
   "keywords": [
     "Chinese",
     "Nmuber",
@@ -40,6 +46,12 @@
     "rollup-plugin-eslint": "^7.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-uglify": "^6.0.3",
-    "roolup": "^1.0.4"
+    "roolup": "^1.0.4",
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-vue": "^5.2.2",
+    "pre-commit": "^1.2.2"
   }
 }
