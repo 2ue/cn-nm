@@ -15,6 +15,8 @@ var MONEY_UINT_1 = ['圆', '圆整'];
 var MONEY_UINT_2 = ['角', '分'];
 // 匹配连续重复字符
 var REG_DEL_REPEAT = /(.)\1+/g;
+// 去掉首位和末位零
+var REG_DEL_REPEAT = /(.)\1+/g;
 // 正向四位分割字符串
 // var REG_SPLIT_LEN = /(\d{4}(?=\d)(?!\d+\.|$))/g;
 // 反向四位分割字符串
@@ -57,13 +59,18 @@ function switchNum(_NUM, _index) {
     if (!_NUM) return '';
     //不足四位的补足四位，以便补零
     var num = _NUM.split('').reverse().concat([0, 0, 0, 0]).splice(0, 4).reverse();
+    // console.log('switchNum==>', num);
     num.map(function (n, i) {
+      // console.log(`nnn==>${n}`, `iii==>${i}`)
         if (!n || n == 0) {
-            res.push((num[i + 1] == 0 || !num[i + 1] || _isFirst) ? '' : NUM_ARRAY[n]);
+            var aaa = (num[i + 1] == 0 || !num[i + 1] || (_isFirst && res.length === 0)) ? '' : NUM_ARRAY[n];
+          // console.log(`nnn==>${n}`, `iii==>${i}`, `aaa==>${aaa}`, num[i + 1]);
+            res.push(aaa);
         } else {
             res.push(NUM_ARRAY[n] + (n > 0 && i < 3 ? UNIT_ARRAY[i] : ''));
         };
     });
+    // console.log('xxxxxxxxxxxxxxxx===>', res);
     return res.join('').replace(REG_DEL_REPEAT, '$1');
 
 };
@@ -74,13 +81,16 @@ function switchAllNum(_NUM) {
     var result = '';
     num.map(function (n, i) {
         var temp = switchNum(n, i == 0);
-        if (!temp) temp = NUM_ARRAY[0];
+        // console.log('temp', n, temp);
+        if (!temp && num.length - 1 !== 1) temp = NUM_ARRAY[0];
         if (len - 1 == i || temp == NUM_ARRAY[0]) {
             result += temp;
         } else {
             result += (temp + NUM_UNIT_ARRAY[len - i - 2]);
         };
+        // console.log('xxx===>temp', temp);
     });
+    // console.log('result ==>', result);
     result = result.replace(REG_DEL_REPEAT, '$1');
     return result;
 };
@@ -113,6 +123,7 @@ function switchDecimalToMoney(_NUM) {
 //拼接
 function joinNum(_NUM) {
     var numArray = dealNum(_NUM);
+    // console.log('numArray===>',numArray);
     var result = switchAllNum(numArray[0]) + (!numArray[1] ? '' : (POINT + switchDecimal(numArray[1])));
     // result = result.replace(new RegExp(`${NUM_ARRAY[1]}${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY[2])
     // .replace(new RegExp(`${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY_OlD[0])
