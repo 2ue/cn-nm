@@ -15,8 +15,10 @@ var MONEY_UINT_1 = ['圆', '圆整'];
 var MONEY_UINT_2 = ['角', '分'];
 // 匹配连续重复字符
 var REG_DEL_REPEAT = /(.)\1+/g;
-// 去掉首位和末位零
-var REG_DEL_REPEAT = /(.)\1+/g;
+// 匹配首位零
+var REG_FIRST_ZERO = new RegExp(`^${NUM_ARRAY[0]}`);
+// 匹配末位零
+var REG_LAST_ZERO = new RegExp(`${NUM_ARRAY[0]}$`);
 // 正向四位分割字符串
 // var REG_SPLIT_LEN = /(\d{4}(?=\d)(?!\d+\.|$))/g;
 // 反向四位分割字符串
@@ -64,7 +66,7 @@ function switchNum(_NUM, _index) {
       // console.log(`nnn==>${n}`, `iii==>${i}`)
         if (!n || n == 0) {
             var aaa = (num[i + 1] == 0 || !num[i + 1] || (_isFirst && res.length === 0)) ? '' : NUM_ARRAY[n];
-          // console.log(`nnn==>${n}`, `iii==>${i}`, `aaa==>${aaa}`, num[i + 1]);
+          console.log(`nnn==>${n}`, `iii==>${i}`, `aaa==>${aaa}`, num[i + 1]);
             res.push(aaa);
         } else {
             res.push(NUM_ARRAY[n] + (n > 0 && i < 3 ? UNIT_ARRAY[i] : ''));
@@ -91,7 +93,7 @@ function switchAllNum(_NUM) {
         // console.log('xxx===>temp', temp);
     });
     // console.log('result ==>', result);
-    result = result.replace(REG_DEL_REPEAT, '$1');
+    result = result.replace(REG_DEL_REPEAT, '$1').replace(REG_FIRST_ZERO, '').replace(REG_LAST_ZERO, '');
     return result;
 };
 
@@ -216,6 +218,20 @@ function joinHz(_HZ) {
     });
     return res + decimalPart;
 };
+
+console.log('cnm==>', joinNum(100050000))
+
+console.log('cnm==>', joinNum(100500000))
+
+console.log('cnm==>', joinNum(105000000))
+
+console.log('cnm==>', joinNum(150050000))
+
+console.log('cnm==>', joinNum(150050050))
+
+console.log('cnm==>', joinNum(105050005))
+
+console.log('cnm==>', joinNum(1050000))
 
 //向外提供接口
 module.exports = {
