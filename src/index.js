@@ -31,7 +31,7 @@ const OPTIONS = {
     format: 'round', // round四舍五入， floor向下舍入, ceil向上舍入
   },
   ch: {
-    simplify: true, // 把壹拾简写成拾
+    simplify: true, // 把首位壹拾简写成拾
   },
 };
 
@@ -59,8 +59,8 @@ const REG_LAST_ZERO = new RegExp(`${NUM_MAP[0]}$`);
 // 匹配连续零
 const REG_SEQUENCE_ZERO = new RegExp(`${NUM_MAP[0]}{2,}`, 'g');
 
-// 匹配壹拾: 把壹拾简写成拾
-const REG_SEQUENCE_TEN = new RegExp(`${NUM_MAP[1]}${NUMBER_UNIT_MAP[0]}`, 'g');
+// 匹配首位壹拾: 把壹拾简写成拾
+const REG_FIRST_TEN = new RegExp(`${NUM_MAP[1]}${NUMBER_UNIT_MAP[0]}`, 'g');
 
 /**
  * 基础工具
@@ -69,31 +69,25 @@ const utils = {
   isNull: (param) => {
     return ['', undefined, NaN, null].includes(param);
   },
-  forMap: (arr, cb) => {
-    if (Array.map) {
-      arr.map(cb);
-    } else {
-      const len = arr.length;
-      for (let i = 0; i < len; i++) {
-        cb(arr[i], i);
-      }
-    }
-  },
 };
 
 /**
- * 处理异常，格式化数字，分割为整数和小数两部分的数组
+ * 分割为整数和小数两部分的数组
+ * 处理异常，格式化数字，
  * */
-const formatNum = (num) => {
+const splitNumber = (num) => {
   if (utils.isNull(num)) return '';
+  if (isNaN(num)) {
+    console.error('转换的值不是数字！');
+    return '';
+  }
   return String(num).split('.');
 };
-
 
 /**
  * 整数部分从右每四位分割成一组
  * */
-const splitNumInteger = (numStr) => {
+const splitIntegerGroup = (numStr) => {
   return numStr.replace(REG_SPLIT_LEN_R, '$1,').split(',');
 };
 
@@ -108,14 +102,13 @@ const getUnit = (index, startIndex = -1) => {
 };
 
 /**
- * 转成小数部分为汉字
- * 逐字转换
+ * 转成小数部分为汉字：逐字转换
  * */
 const convertDecimal = (numStr) => {
   if (utils.isNull(numStr)) return '';
   const numArr = numStr.split('');
 
-  utils.forMap(numArr, (arr, i) => {
+  numArr.map((arr, i) => {
     numArr[i] = NUM_MAP[arr];
   });
 
@@ -123,14 +116,13 @@ const convertDecimal = (numStr) => {
 };
 
 /**
- * 转成小数部分为汉字
- * 逐字转换
+ * 转成小数部分为汉字:逐字转换
  * */
 const convertDecimalMoney = (numStr) => {
   if (utils.isNull(numStr)) return MONEY_UINT_MAP[0];
   const numArr = numStr.substr(0, 2).split('');
 
-  utils.forMap(numArr, (arr, i) => {
+  numArr.map((arr, i) => {
     numArr[i] = `${NUM_MAP[arr]}${MONEY_UINT_MAP[i + 2]}`;
   });
 
@@ -138,22 +130,26 @@ const convertDecimalMoney = (numStr) => {
 };
 
 /**
- * 转化四位整数为汉字
+ * 把四位整数数字转化为汉字
+ * 以下几种特殊情况：
  * 0001=>零一：可能会造成首位零
  * 0101=>零一百零一
  * 1001=>一千零一
  * 1000=>一千零：可能会造成末位零
+ *
+ * 去除连续零
+ * 然后去掉末位零
  * */
 const convertSection = (numStr) => {
   // 补全四位
   const sectionArr = [0, 0, 0, 0].concat(numStr.split('')).splice(-4).reverse();
 
-  utils.forMap(sectionArr, (arr, i) => {
+  sectionArr.map((arr, i) => {
     // 对照阿拉伯数字表
     const numHz = NUM_MAP[arr];
     // 对照单位表：当前位为0，则不给单位
     const unit = arr > 0 ? getUnit(i) : '';
-    console.log('unit===>', arr, i, unit);
+    // console.log('unit===>', arr, i, unit);
     sectionArr[i] = numHz + unit;
   });
 
@@ -172,10 +168,11 @@ const convertSection = (numStr) => {
  * */
 const convertInteger = (numArr) => {
   const reverseNumArr = numArr.reverse();
-  utils.forMap(reverseNumArr, (arr, i) => {
+  reverseNumArr.map((arr, i) => {
     const str = convertSection(arr);
     // 倒数第一组不添加单位
-    const unit = i ? getUnit(i - 1, 3) : '';
+    console.log('arr===>', arr, str);
+    const unit = i && !utils.isNull(str) ? getUnit(i - 1, 3) : '';
     reverseNumArr[i] = [str, unit].join('');
   });
 
@@ -195,11 +192,11 @@ const convertInteger = (numArr) => {
  * */
 const convertCn = (num) => {
   // 分割成整数和小数部分
-  const numArr = formatNum(num);
+  const numArr = splitNumber(num);
   // 转化小数部分
   const decimalPart = convertDecimal(numArr[1]);
   // 转化整数部分
-  const integerPart = convertInteger(splitNumInteger(numArr[0]));
+  const integerPart = convertInteger(splitIntegerGroup(numArr[0]));
 
   return [integerPart, decimalPart].join('');
 };
@@ -211,13 +208,16 @@ const convertCn = (num) => {
  * */
 const convertMoney = (num) => {
   // 分割成整数和小数部分
-  const numArr = formatNum(num);
+  const numArr = splitNumber(num);
   // 转化小数部分
   const decimalPart = convertDecimalMoney(numArr[1]);
   // 转化整数部分
-  const integerPart = convertInteger(splitNumInteger(numArr[0]));
+  const integerPart = convertInteger(splitIntegerGroup(numArr[0]));
 
   return [integerPart, decimalPart].join('');
 };
 
-console.log('convertMoney===>', convertMoney(1234212711.233));
+module.exports = {
+  convertCn,
+  convertMoney,
+};
