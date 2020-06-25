@@ -1,7 +1,8 @@
 /**
  * 数字转换成中文
- * TODO：
- * 配置参数
+ * TODO:
+ * 1、大数处理：科学计数转换/超过常规单位转换
+ * 2.配置参数
  * OPTIONS: {
  *     integer: {
  *       largeNumber: false, // 是否支持大数(在js的Number范围内)，科学计数法兼容等，会把科学技术法的数字转换成对应字符串
@@ -47,7 +48,7 @@ const REG_SPLIT_LEN_R = /(\d{1,4})(?=(?:\d{4})+(?!\d))/g;
 // 符号
 const POINT = ['点'];
 
-// 度量单位对照表
+// 金额度量单位对照表
 const MONEY_UINT_MAP = ['元整', '元', '角', '分'];
 
 // 匹配首位零
@@ -93,8 +94,6 @@ const splitIntegerGroup = (numStr) => {
 
 /**
  * 获取单位
- * type = 0 获取四位整数的单位
- * type = 1 获取四位整数整体的单位
  * */
 const getUnit = (index, startIndex = -1) => {
   const unit = NUMBER_UNIT_MAP[index + startIndex];
@@ -146,11 +145,11 @@ const convertSection = (numStr) => {
 
   sectionArr.map((arr, i) => {
     // 对照阿拉伯数字表
-    const numHz = NUM_MAP[arr];
+    const numCN = NUM_MAP[arr];
     // 对照单位表：当前位为0，则不给单位
     const unit = arr > 0 ? getUnit(i) : '';
     // console.log('unit===>', arr, i, unit);
-    sectionArr[i] = numHz + unit;
+    sectionArr[i] = numCN + unit;
   });
 
   return sectionArr
@@ -187,8 +186,6 @@ const convertInteger = (numArr) => {
 /* --------对外暴露方法-----------*/
 /**
  * 把数字转换成整数
- * TODO:
- * 1、大数处理：科学计数转换/超过常规单位转换
  * */
 const convertCn = (num) => {
   // 分割成整数和小数部分
@@ -202,9 +199,8 @@ const convertCn = (num) => {
 };
 
 /**
- * 把数字转换成整数
- * TODO:
- * 1、大数处理：科学计数转换/超过常规单位转换
+ * 把数字转换成金额
+ * TODO: 带上单位，圆角分整
  * */
 const convertMoney = (num) => {
   // 分割成整数和小数部分
