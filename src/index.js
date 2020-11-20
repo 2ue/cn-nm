@@ -1,5 +1,27 @@
 /**
  * 数字转换成中文
+ * 思路：
+ * 0.处理数字
+ *    1.异常判断(空，非数字等)
+ *    2.超大/超小数处理=>转换成字符串
+ *    3.负数处理
+ * 1.分割数字：分割数字为整数，小数部分
+ * 2.小数转换：小数部分逐字转换
+ * 3.分割整数：整数部分，从个位开始按四位分割成若干段
+ * 4.四位整数转换并整理：
+ *    1.转换成【xx千xx百xx十xx】等，并遵循以下规则
+ *    2.遇到【0】转换成【零】，不带单位
+ *    3.遇到遇到【连续零】转换成【零】
+ *    4.去掉【末位零】？
+ * 5.四位整数加单位：
+ *    1.给若干段四位数加上单位：形如【(xx千xx百xx十xx)亿】、【(xx千xx百xx十xx)万】等，并遵循以下规则
+ *    2.遇【空】转换【零】
+ *    3.非空正常加单位
+ * 6.整理整数：
+ *    1.去掉连续【零】
+ *    2.去掉【首位零】
+ *    3.去掉【末位零】
+ * 7.拼接小数据和整数
  * TODO:
  * 1、大数处理：科学计数转换/超过常规单位转换
  * 2.配置参数
@@ -20,36 +42,32 @@
  * }
  * */
 
+import {
+  NUMBER_UNIT_MAP,
+  NUM_MAP,
+  POINT,
+  MONEY_UINT_MAP,
+} from './lang/zh-cn';
+import { isNull } from './utils';
+
 // 一些默认配置，可以被自定义配置覆盖
-const OPTIONS = {
-  integer: {
-    largeNumber: false,
-    onlyUseCommonUnit: false,
-  },
-  decimal: {
-    allowLastZero: false,
-    toFixed: undefined,
-    format: 'round', // round四舍五入， floor向下舍入, ceil向上舍入
-  },
-  ch: {
-    simplify: true, // 把首位壹拾简写成拾
-  },
-};
-
-// 单位对照表
-const NUMBER_UNIT_MAP = ['拾', '佰', '仟', '万', '亿', '兆', '京', '垓', '秭', '穰', '沟', '涧', '正', '载', '极', '恒河沙', '阿僧祗', '那由他', '不可思议', '无量', '大数'];
-
-// 阿拉伯汉字对照表
-const NUM_MAP = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
+// const OPTIONS = {
+//   integer: {
+//     largeNumber: false,
+//     onlyUseCommonUnit: false,
+//   },
+//   decimal: {
+//     allowLastZero: false,
+//     toFixed: undefined,
+//     format: 'round', // round四舍五入， floor向下舍入, ceil向上舍入
+//   },
+//   ch: {
+//     simplify: true, // 把首位壹拾简写成拾
+//   },
+// };
 
 // 反向四位分割字符串
 const REG_SPLIT_LEN_R = /(\d{1,4})(?=(?:\d{4})+(?!\d))/g;
-
-// 符号
-const POINT = ['点'];
-
-// 金额度量单位对照表
-const MONEY_UINT_MAP = ['元整', '元', '角', '分'];
 
 // 匹配首位零
 const REG_FIRST_ZERO = new RegExp(`^${NUM_MAP[0]}`);
@@ -61,23 +79,14 @@ const REG_LAST_ZERO = new RegExp(`${NUM_MAP[0]}$`);
 const REG_SEQUENCE_ZERO = new RegExp(`${NUM_MAP[0]}{2,}`, 'g');
 
 // 匹配首位壹拾: 把壹拾简写成拾
-const REG_FIRST_TEN = new RegExp(`${NUM_MAP[1]}${NUMBER_UNIT_MAP[0]}`, 'g');
-
-/**
- * 基础工具
- * */
-const utils = {
-  isNull: (param) => {
-    return ['', undefined, NaN, null].includes(param);
-  },
-};
+// const REG_FIRST_TEN = new RegExp(`${NUM_MAP[1]}${NUMBER_UNIT_MAP[0]}`, 'g');
 
 /**
  * 分割为整数和小数两部分的数组
  * 处理异常，格式化数字，
  * */
 const splitNumber = (num) => {
-  if (utils.isNull(num)) return '';
+  if (isNull(num)) return '';
   if (isNaN(num)) {
     console.error('转换的值不是数字！');
     return '';
@@ -88,7 +97,7 @@ const splitNumber = (num) => {
 /**
  * 整数部分从右每四位分割成一组
  * */
-const splitIntegerGroup = (numStr) => {
+const splitInteger = (numStr) => {
   return numStr.replace(REG_SPLIT_LEN_R, '$1,').split(',');
 };
 
@@ -103,8 +112,8 @@ const getUnit = (index, startIndex = -1) => {
 /**
  * 转成小数部分为汉字：逐字转换
  * */
-const convertDecimal = (numStr) => {
-  if (utils.isNull(numStr)) return '';
+const convertDecimalToCN = (numStr) => {
+  if (isNull(numStr)) return '';
   const numArr = numStr.split('');
 
   numArr.map((arr, i) => {
@@ -117,8 +126,8 @@ const convertDecimal = (numStr) => {
 /**
  * 转成小数部分为汉字:逐字转换
  * */
-const convertDecimalMoney = (numStr) => {
-  if (utils.isNull(numStr)) return MONEY_UINT_MAP[0];
+const convertDecimalToMoney = (numStr) => {
+  if (isNull(numStr)) return MONEY_UINT_MAP[0];
   const numArr = numStr.substr(0, 2).split('');
 
   numArr.map((arr, i) => {
@@ -171,7 +180,7 @@ const convertInteger = (numArr) => {
     const str = convertSection(arr);
     // 倒数第一组不添加单位
     console.log('arr===>', arr, str);
-    const unit = i && !utils.isNull(str) ? getUnit(i - 1, 3) : '';
+    const unit = i && !isNull(str) ? getUnit(i - 1, 3) : '';
     reverseNumArr[i] = [str, unit].join('');
   });
 
@@ -191,9 +200,9 @@ const convertCn = (num) => {
   // 分割成整数和小数部分
   const numArr = splitNumber(num);
   // 转化小数部分
-  const decimalPart = convertDecimal(numArr[1]);
+  const decimalPart = convertDecimalToCN(numArr[1]);
   // 转化整数部分
-  const integerPart = convertInteger(splitIntegerGroup(numArr[0]));
+  const integerPart = convertInteger(splitInteger(numArr[0]));
 
   return [integerPart, decimalPart].join('');
 };
@@ -206,9 +215,9 @@ const convertMoney = (num) => {
   // 分割成整数和小数部分
   const numArr = splitNumber(num);
   // 转化小数部分
-  const decimalPart = convertDecimalMoney(numArr[1]);
+  const decimalPart = convertDecimalToMoney(numArr[1]);
   // 转化整数部分
-  const integerPart = convertInteger(splitIntegerGroup(numArr[0]));
+  const integerPart = convertInteger(splitInteger(numArr[0]));
 
   return [integerPart, decimalPart].join('');
 };
