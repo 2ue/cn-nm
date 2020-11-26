@@ -126,10 +126,9 @@ function convertDecimalToCN(str) {
   if (isNull(str)) return '';
   return str.replace(/\d/g, s => NUMBER_MAP[s]);
 }
-// console.log(convertDecimalToCN('2345012'));
 
 /**
- * @function 4位反向分割数字
+ * @function 4位反向分割数字，分割整数部分
  * @returns {Array}
  */
 function splitIntegerIn4Digt(str) {
@@ -137,7 +136,6 @@ function splitIntegerIn4Digt(str) {
   if (!isNumberLike(str)) return [];
   return str.replace(REG_SPLIT_LEN_R, '$1,').split(',');
 }
-// console.log('ss==>', splitIntegerIn4Digt('12345678,9'));
 
 /**
  * @function 用0从首位补全，直到4位数
@@ -147,6 +145,7 @@ function completion4DigtNumber(str) {
   const newStr = `0000${str}`;
   return newStr.substr(newStr.length - 4, 4).split('');
 }
+
 /**
  * @function 转换四位数为汉字：几千几百几十几
  * @param {Array} 分割好的数组
@@ -169,7 +168,7 @@ function join4DigtNumberUnit(str, i) {
 }
 
 /**
- * @function 连接四位数单元
+ * @function 拼接整数部分
  */
 function join4DigtToIntegerCN(str) {
   const arr = splitIntegerIn4Digt(str);
@@ -180,6 +179,16 @@ function join4DigtToIntegerCN(str) {
   return clearFirstZero(clearLastZero(toOneZero(integerStr)));
 }
 
+/**
+ * @function 转换最终结果
+ * @returns {Object} 以对象形式返回
+ * {
+ *  sign（正负号）: 正数为空，负数返回’负‘
+ *  point（小数点）: 整数为空，小数返回'点'
+ *  integer（整数部分）: 为空或者0返回'零'
+ *  decimal（小数部分）: 为空返回’‘
+ * }
+ */
 function toCN(param) {
   const str = formatNumber(param);
   const obj = splitNumber(str);
@@ -189,8 +198,8 @@ function toCN(param) {
   const point = obj.isDecimal ? POINT : '';
   // 小数部分
   const decimal = convertDecimalToCN(obj.decimal);
-  // 整数部分
-  const integer = join4DigtToIntegerCN(obj.integer);
+  // 整数部分, 对于0或者空返回’零‘
+  const integer = join4DigtToIntegerCN(obj.integer) || NUMBER_MAP[0];
   return {
     sign,
     point,
@@ -199,7 +208,10 @@ function toCN(param) {
   };
 }
 
-console.log(toCN(1234));
-console.log(toCN(67851234.55));
-console.log(toCN(7851234.55));
-console.log(toCN(-7851234.5504));
+console.log('join4DigtToIntegerCN==>', join4DigtToIntegerCN('0'));
+
+console.log(toCN(0.1234));
+console.log(toCN(0));
+// console.log(toCN(67851234.55));
+// console.log(toCN(7851234.55));
+// console.log(toCN(-7851234.5504));
