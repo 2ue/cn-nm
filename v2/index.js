@@ -208,10 +208,8 @@ function toCN(param) {
   };
 }
 
-console.log('join4DigtToIntegerCN==>', join4DigtToIntegerCN('0'));
-
-console.log(toCN(0.1234));
-console.log(toCN(0));
+// console.log(toCN(0.1234));
+// console.log(toCN(0));
 // console.log(toCN(67851234.55));
 // console.log(toCN(7851234.55));
 // console.log(toCN(-7851234.5504));
