@@ -103,5 +103,5 @@ jobs:
           git add package.json
           git commit -m "Bump version to ${{ env.TAG_NAME }}"
           git tag -a "${{ env.TAG_NAME }}" -m "Release ${{ env.TAG_NAME }}"
-          git push origin main
+          git push origin master
 
