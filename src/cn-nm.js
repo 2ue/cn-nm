@@ -6,7 +6,7 @@
 ;
 //设置一些默认参数
 var UNIT_ARRAY = ['仟','佰','拾'];
-var UNIT_ARRAY_OlD = ['拾']
+// var UNIT_ARRAY_OlD = ['拾']
 var POINT = '点';
 // var NUM_ARRAY = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 var NUM_ARRAY = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
@@ -14,7 +14,7 @@ var NUM_UNIT_ARRAY = ['万', '亿', '兆', '京', '垓', '秭', '穰', '沟', '�
 //匹配连续重复字符
 var REG_DEL_REPEAT = /(.)\1+/g;
 //正向四位分割字符串
-var REG_SPLIT_LEN = /(\d{4}(?=\d)(?!\d+\.|$))/g;
+// var REG_SPLIT_LEN = /(\d{4}(?=\d)(?!\d+\.|$))/g;
 //反向四位分割字符串
 var REG_SPLIT_LEN_R = /(\d{1,4})(?=(?:\d{4})+(?!\d))/g;
 
@@ -36,14 +36,14 @@ function formatNum(_NUM) {
 function dealNum(_NUM){
     _NUM = formatNum(_NUM)
     return _NUM.split('.');
-};
+}
 
 //每四位分割成一组
 function splitNum(_NUM){
     if(!_NUM || isNaN(_NUM)) return [];
     return _NUM.replace(REG_SPLIT_LEN_R,'$1,').split(',');
 
-};
+}
 
 //转化四位数为汉字，加上单位
 function switchNum(_NUM, _index){
@@ -65,7 +65,7 @@ function switchNum(_NUM, _index){
     });
     return res.join('').replace(REG_DEL_REPEAT,'$1');
 
-};
+}
 //转换小数部分
 function switchDecimal(_NUM){
     if(!_NUM) return;
@@ -80,7 +80,7 @@ function switchDecimal(_NUM){
 
     });
     return res.join('');
-};
+}
 
 //拼接
 function joinNum (_NUM) {
@@ -101,14 +101,14 @@ function joinNum (_NUM) {
     // reslt = reslt.replace(new RegExp(`${NUM_ARRAY[1]}${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY[2])
         // .replace(new RegExp(`${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY_OlD[0])
     return reslt;
-};
+}
 
 //转换成数字
 //分割整数和小数部分
 function dealHz(_HZ){
     if(!_HZ) return [];
     return _HZ.split(POINT);
-};
+}
 //分割成组
 function splitHz(_HZ){
     if(!_HZ) return [0];
@@ -124,7 +124,7 @@ function splitHz(_HZ){
                 for(var loc = 1; loc < location - thisLocation; loc ++){
                     res.push(NUM_ARRAY[0]);
                 }
-            };
+            }
             res.push(temp);
             temp = '';
             location = thisLocation;
@@ -134,7 +134,7 @@ function splitHz(_HZ){
         }
     });
     return res;
-};
+}
 
 function switchHz(_HZ){
     if(!_HZ) return '';
@@ -153,7 +153,7 @@ function switchHz(_HZ){
     });
     return res;
 
-};
+}
 //转换小数部分
 function switchDecimalHz(_HZ){
     if(!_HZ) return '';
@@ -164,7 +164,7 @@ function switchDecimalHz(_HZ){
         res.push(NUM_ARRAY.indexOf(n));
     });
     return res.join('');
-};
+}
 
 function joinHz(_HZ){
     if(!_HZ || _HZ == NUM_ARRAY[0]) return 0;
@@ -177,9 +177,7 @@ function joinHz(_HZ){
         res = res + '' + temp;
     });
     return res + decimalPart;
-};
-//向外提供接口
-module.exports = {
-    toCn: joinNum,
-    toNm: joinHz
-};
+}
+
+export const toCn = joinNum;
+export const toNm = joinHz;

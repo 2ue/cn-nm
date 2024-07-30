@@ -1,0 +1,107 @@
+name: Publish
+on:
+  repository_dispatch:
+    types: [to-publish-npm]
+
+jobs:
+  pre-publish:
+    # needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Set timezone to Asia/Shanghai
+        uses: szenius/set-timezone@v2.0
+        with:
+          timezoneLinux: "Asia/Shanghai"
+
+      - name: Echo current time
+        run: timedatectl
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.11.1
+
+      - name: Set Git user and email
+        run: |
+          git config --local user.name ${{vars.NAME}}
+          git config --local user.email ${{vars.EMAIL}}
+          git config --local --list
+
+      - name: Update Version
+        run: |
+          # 更新版本号并获取新版本号
+          VERSION=$(npm version patch --no-git-tag-version --silent)
+          echo "VERSION=$VERSION"
+          # 将新版本号输出到环境变量
+          echo "NEW_VERSION=$VERSION" >> $GITHUB_ENV
+          SHORT_GITHUB_SHA=$(echo ${GITHUB_SHA:0:8})
+          echo "SHORT_GITHUB_SHA=$SHORT_GITHUB_SHA"
+          # 将八位hash输出到环境变量
+          echo "SHORT_GITHUB_SHA=$SHORT_GITHUB_SHA" >> $GITHUB_ENV
+          TAG_NAME="${VERSION}-${SHORT_GITHUB_SHA}"
+          echo "TAG_NAME=$TAG_NAME"
+          # 将组合的TAG_NAME输出到环境变量
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm
+          # pnpm config set store-dir $(pwd)/.pnpm-store
+          # pnpm config set recursive-optional true
+
+      - name: Install Dependence
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build dist
+        run: |
+          git pull -p
+          pnpm run build
+
+      - name: Add Npm Token
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ./.npmrc
+          ls -al
+          cat ./.npmrc
+
+      - name: Publish
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+      - name: Package specific files
+        run: |
+          zip -r ${{ env.TAG_NAME }}.zip ./package.json ./dist ./LICENSE
+          ls -al
+      
+      # - name: "✏️ Generate release changelog"
+      #   uses: heinrichreimer/action-github-changelog-generator@v2.3
+      #   with:
+      #     token: ${{ secrets.TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          token: ${{ secrets.TOKEN }}
+          name: "Release ${{ env.NEW_VERSION }}"
+          tag_name: "${{ env.TAG_NAME }}"
+          body: "Check the changelog for details."
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: ${{ env.TAG_NAME }}.zip
+
+      - name: Commit and push Version
+        run: |
+          git add package.json
+          git commit -m "Bump version to ${{ env.TAG_NAME }}"
+          git tag -a "${{ env.TAG_NAME }}" -m "Release ${{ env.TAG_NAME }}"
+          git push origin main
+
