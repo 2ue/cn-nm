@@ -215,9 +215,11 @@ describe('cn-nm 中文数字转换库测试', () => {
       });
 
       test('不完整的中文数字', () => {
-        expect(toNm('拾')).toBe(0);
-        expect(toNm('佰')).toBe(0);
-        expect(toNm('仟')).toBe(0);
+        // 单独的单位字符，拾/佰/仟是有效的（表示10/100/1000）
+        expect(toNm('拾')).toBe(10);
+        expect(toNm('佰')).toBe(100);
+        expect(toNm('仟')).toBe(1000);
+        // 但万/亿等大单位不能单独存在
         expect(toNm('万')).toBe(0);
         expect(toNm('亿')).toBe(0);
       });
@@ -313,9 +315,9 @@ describe('cn-nm 中文数字转换库测试', () => {
       test('字符串格式边界', () => {
         expect(toCn('0000')).toBe('零');
         expect(toCn('0001')).toBe('壹');
-        expect(toCn('00.5')).toBe('点伍'); // 实际行为：00被识别为0，但未显示
+        expect(toCn('00.5')).toBe('零点伍'); // 00.5被标准化为0.5
         expect(toCn('0.0')).toBe('零');
-        expect(toCn('.0')).toBe('零点零');  // 实际解析为0.0
+        expect(toCn('.0')).toBe('零');  // .0被标准化为0
       });
 
       test('浮点数精度边界', () => {
@@ -341,13 +343,13 @@ describe('cn-nm 中文数字转换库测试', () => {
       });
 
       test('多个零的处理', () => {
-        expect(toNm('壹万零零壹')).toBe(10001); // 实际被解析为正确格式
+        expect(toNm('壹万零零壹')).toBe(0); // 连续的零零是不合理的格式
         expect(toNm('零壹万')).toBe(0); // 无效格式
         expect(toNm('万零壹')).toBe(0); // 无效格式
       });
 
       test('单位重复或错误顺序', () => {
-        expect(toNm('壹拾万万')).toBe(100000); // 实际被解析成有效格式
+        expect(toNm('壹拾万万')).toBe(0); // 万重复，生活中不合理
         expect(toNm('壹万拾')).toBe(0); // 无效格式
         expect(toNm('拾万壹')).toBe(0); // 无效格式  
         expect(toNm('壹亿万')).toBe(0); // 无效格式
@@ -360,7 +362,7 @@ describe('cn-nm 中文数字转换库测试', () => {
       });
 
       test('特殊小数格式', () => {
-        expect(toNm('点壹')).toBe(0.1); // 实际被解析为小数
+        expect(toNm('点壹')).toBe(0); // 缺少整数部分，生活中不合理
         expect(toNm('壹点')).toBe(0); // 缺少小数部分，无效
         expect(toNm('壹点点贰')).toBe(0); // 多个点，无效
         expect(toNm('零点零')).toBe(0.0);
@@ -387,7 +389,7 @@ describe('cn-nm 中文数字转换库测试', () => {
         
         // 测试超长无效中文
         const invalidLong = '壹'.repeat(100);
-        expect(toNm(invalidLong)).toBe(1); // 实际只识别首个字符
+        expect(toNm(invalidLong)).toBe(0); // 重复字符在生活中不合理
       });
     });
 

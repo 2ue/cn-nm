@@ -53,14 +53,21 @@ const NUM_UNIT_ARRAY: readonly string[] = [
 function formatNum(num: NumberInput): string {
   // 过滤掉不是数字的字符，特殊处理0
   if (num === 0) return '0';
+  // 特殊处理数组和对象等非数字类型
+  if (typeof num === 'object' || Array.isArray(num)) return '';
   if (!num || isNaN(Number(num))) return '';
   // 负数返回空
   if (Number(num) < 0) return '';
   // 处理Infinity
   if (!isFinite(Number(num))) return '';
+
+  // 标准化数字字符串，处理00.5、.0等格式
+  const numValue = Number(num);
+
   // 把类1.0，1.00格式的数字处理成1
-  if (+num === parseInt(String(num))) return String(parseInt(String(num)));
-  return String(num);
+  if (numValue === parseInt(String(numValue)))
+    return String(parseInt(String(numValue)));
+  return String(numValue);
 }
 
 /**
@@ -267,6 +274,27 @@ function parseChineseNumber(chineseStr: string): number {
     }
   }
 
+  // 检查明显不合理的重复字符（如"壹壹"、"万万"等连续重复）
+  // 但允许正常的重复使用（如"壹拾壹"中的壹重复使用是合理的）
+  for (let i = 0; i < chineseStr.length - 1; i++) {
+    if (chineseStr[i] === chineseStr[i + 1]) {
+      // 连续相同字符，生活中不合理
+      return 0;
+    }
+  }
+
+  // 检查大单位重复出现（如"万万"、"亿亿"）- 大单位不应该重复
+  for (let i = 0; i < NUM_UNIT_ARRAY.length; i++) {
+    const unit = NUM_UNIT_ARRAY[i];
+    const firstIndex = chineseStr.indexOf(unit);
+    const lastIndex = chineseStr.lastIndexOf(unit);
+    if (firstIndex !== -1 && firstIndex !== lastIndex) {
+      return 0; // 大单位重复
+    }
+  }
+
+  // 注意：小单位（拾、佰、仟）可以在不同级别重复，如"壹拾万伍拾"是合理的
+
   // 检查单独的大单位字符（万、亿等不能单独存在）
   if (NUM_UNIT_ARRAY.indexOf(chineseStr) >= 0) {
     return 0;
@@ -455,9 +483,20 @@ function joinHz(chineseStr: string): number {
     if (parts[1] === '') {
       return 0;
     }
+
+    // 3. 检查"点壹"这样缺少整数部分的情况 - 生活中不合理
+    if (parts[0] === '') {
+      return 0;
+    }
   }
 
   const integerPart = parseChineseNumber(parts[0]);
+  
+  // 如果整数部分解析为0，需要验证是否是有效的"零"还是无效输入
+  if (integerPart === 0 && parts[0] !== '' && parts[0] !== NUM_ARRAY[0]) {
+    return 0; // 整数部分无效
+  }
+  
   const decimalPart = switchDecimalHz(parts[1]);
 
   if (decimalPart) {
