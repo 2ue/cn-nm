@@ -6,17 +6,9 @@
 ;
 //设置一些默认参数
 var UNIT_ARRAY = ['仟','佰','拾'];
-// var UNIT_ARRAY_OlD = ['拾']
 var POINT = '点';
-// var NUM_ARRAY = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 var NUM_ARRAY = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
 var NUM_UNIT_ARRAY = ['万', '亿', '兆', '京', '垓', '秭', '穰', '沟', '涧', '正', '载', '极', '恒河沙', '阿僧祗', '那由他', '不可思议', '无量', '大数'];
-//匹配连续重复字符
-var REG_DEL_REPEAT = /(.)\1+/g;
-//正向四位分割字符串
-// var REG_SPLIT_LEN = /(\d{4}(?=\d)(?!\d+\.|$))/g;
-//反向四位分割字符串
-var REG_SPLIT_LEN_R = /(\d{1,4})(?=(?:\d{4})+(?!\d))/g;
 
 //转换成汉字
 
@@ -24,159 +16,356 @@ var REG_SPLIT_LEN_R = /(\d{1,4})(?=(?:\d{4})+(?!\d))/g;
 * 格式化数字，方便后续处理
 * */
 function formatNum(_NUM) {
-    // 过滤掉不是数字的字符
+    // 过滤掉不是数字的字符，特殊处理0
+    if (_NUM === 0) return '0'
     if (!_NUM || isNaN(_NUM)) return ''
+    // 负数返回空
+    if (Number(_NUM) < 0) return ''
+    // 处理Infinity
+    if (!isFinite(_NUM)) return ''
     // 把类1.0，1.00格式的数字处理成1
-    // 统一转成字符串
     if (+_NUM === parseInt(_NUM)) return String(parseInt(_NUM))
     return String(_NUM)
 }
 
 //分割整数和小数部分
 function dealNum(_NUM){
+    var originalNum = _NUM; // 保存原始输入
     _NUM = formatNum(_NUM)
-    return _NUM.split('.');
+    if (!_NUM) return ['', '']
+    var parts = _NUM.split('.');
+    // 对于0.5这样的小数，整数部分应该是'0' 
+    if (!parts[0] && parts[1]) {
+        parts[0] = '0';
+    }
+    return parts;
 }
 
 //每四位分割成一组
 function splitNum(_NUM){
     if(!_NUM || isNaN(_NUM)) return [];
+    // 使用正则表达式进行四位分割
+    var REG_SPLIT_LEN_R = /(\d{1,4})(?=(?:\d{4})+(?!\d))/g;
     return _NUM.replace(REG_SPLIT_LEN_R,'$1,').split(',');
-
 }
 
 //转化四位数为汉字，加上单位
-function switchNum(_NUM, _index){
-    // num 需要转换的数字
-    //_isFirst 是否为首位
-    var _isFirst = !!_index;
-    //最终返回结果的数组
-    var res = [];
+function switchNum(_NUM, _isFirst, _isLast){
     if(!_NUM) return '';
-    //不足四位的补足四位，以便补零
-    var num = _NUM.split('').reverse().concat([0,0,0,0]).splice(0,4).reverse();
-    num.map(function(n,i){
-        if(!n || n == 0){
-            res.push((num[i+1] == 0 || !num[i+1] || _isFirst) ? '' : NUM_ARRAY[n]);
-        }else{
-            res.push(NUM_ARRAY[n] + (n > 0 && i < 3 ? UNIT_ARRAY[i] : ''));
+    if(_NUM === '0000' || _NUM === '0') return NUM_ARRAY[0];
+    
+    var res = [];
+    // 补足四位，左侧填充0
+    var num = ('0000' + _NUM).slice(-4).split('').map(n => parseInt(n));
+    // 只有在非第一段且原始长度不足4位且有前导0时才需要特殊处理
+    var needLeadingZero = !_isFirst && _NUM.length < 4 && _NUM.charAt(0) === '0';
+    
+    for(var i = 0; i < 4; i++){
+        var digit = num[i];
+        
+        if(digit === 0) {
+            // 需要加零的条件：后面有非零数字，且前面有非零数字
+            var hasNonZeroAfter = false;
+            for(var j = i + 1; j < 4; j++) {
+                if(num[j] !== 0) {
+                    hasNonZeroAfter = true;
+                    break;
+                }
+            }
+            
+            var hasNonZeroBefore = false;
+            for(var k = 0; k < i; k++) {
+                if(num[k] !== 0) {
+                    hasNonZeroBefore = true;
+                    break;
+                }
+            }
+            
+            // 特殊处理：如果是跨段的前导零（如10001中的0001），需要在开头加零
+            if(hasNonZeroAfter && (hasNonZeroBefore || (i === 0 && needLeadingZero))) {
+                if(res.length === 0 || res[res.length - 1] !== NUM_ARRAY[0]) {
+                    res.push(NUM_ARRAY[0]);
+                }
+            }
+        } else {
+            res.push(NUM_ARRAY[digit] + (i < 3 ? UNIT_ARRAY[i] : ''));
         }
-
-    });
-    return res.join('').replace(REG_DEL_REPEAT,'$1');
-
+    }
+    
+    return res.join('');
 }
+
 //转换小数部分
 function switchDecimal(_NUM){
-    if(!_NUM) return;
+    if(!_NUM) return '';
     var res = [];
     var num = _NUM.split('');
-    num.map(function(n,i){
-        if(!n || n == 0){
-            res.push((num[i+1] == 0 || !num[i+1]) ? '' : NUM_ARRAY[n]);
-        }else{
-            res.push(NUM_ARRAY[n]);
+    for(var i = 0; i < num.length; i++){
+        var digit = num[i];
+        if(digit === '0') {
+            // 小数部分的零直接转换
+            res.push(NUM_ARRAY[0]);
+        } else {
+            res.push(NUM_ARRAY[parseInt(digit)]);
         }
-
-    });
+    }
     return res.join('');
 }
 
 //拼接
 function joinNum (_NUM) {
     var numArray = dealNum(_NUM);
+    if(!numArray[0] && !numArray[1]) return '';
+    
+    // 特殊处理0
+    if(numArray[0] === '0' && !numArray[1]) return NUM_ARRAY[0];
+    if(numArray[0] === '0' && numArray[1]) return NUM_ARRAY[0] + POINT + switchDecimal(numArray[1]); // 0.5 -> 零点伍
+    
     var num = splitNum(numArray[0]);
     var len = num.length;
     var reslt = '';
-    num.map(function(n,i){
-        var temp = switchNum(n, i == 0);
-        if(!temp) temp = NUM_ARRAY[0];
-        if(len - 1 == i || temp == NUM_ARRAY[0]){
-            reslt += temp;
-        }else{
-            reslt += (temp + NUM_UNIT_ARRAY[len - i - 2]);
+    
+    num.map(function(n, i){
+        var temp = switchNum(n, i === 0, i === len - 1);
+        if(!temp && i === len - 1) return; // 最后一个空的不处理
+        
+        // 检查是否需要跨段零
+        var needCrossZero = false;
+        if(i < len - 1 && n && temp && temp !== NUM_ARRAY[0]) {
+            var currentValue = parseInt(n);
+            // 当后面一段的值小于1000时，需要加零
+            if(currentValue < 1000 && i > 0) {
+                needCrossZero = true;
+            }
+        }
+        
+        if(i < len - 1 && temp && temp !== NUM_ARRAY[0]) {
+            // 添加单位
+            if(needCrossZero && !temp.startsWith(NUM_ARRAY[0])) {
+                reslt += NUM_ARRAY[0] + temp + NUM_UNIT_ARRAY[len - i - 2];
+            } else {
+                reslt += temp + NUM_UNIT_ARRAY[len - i - 2];
+            }
+        } else {
+            // 最后一段，检查是否需要加前导零
+            if(i === len - 1 && len > 1 && parseInt(n) < 1000 && reslt && !temp.startsWith(NUM_ARRAY[0])) {
+                reslt += NUM_ARRAY[0] + temp;
+            } else {
+                reslt += temp;
+            }
         }
     });
-    reslt = reslt.replace(REG_DEL_REPEAT,'$1') + (!numArray[1] ? '' : (POINT + switchDecimal(numArray[1])))
-    // reslt = reslt.replace(new RegExp(`${NUM_ARRAY[1]}${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY[2])
-        // .replace(new RegExp(`${UNIT_ARRAY[2]}`, 'g'), UNIT_ARRAY_OlD[0])
+    
+    // 清理重复的零
+    reslt = reslt.replace(/零+/g, '零');
+    // 清理末尾的零
+    reslt = reslt.replace(/零$/, '');
+    
+    // 添加小数部分
+    if(numArray[1]) {
+        reslt += POINT + switchDecimal(numArray[1]);
+    }
+    
     return reslt;
 }
 
 //转换成数字
+
 //分割整数和小数部分
 function dealHz(_HZ){
-    if(!_HZ) return [];
+    if(!_HZ || typeof _HZ !== 'string') return ['', ''];
     return _HZ.split(POINT);
 }
-//分割成组
-function splitHz(_HZ){
-    if(!_HZ) return [0];
-    //去掉整数部分所有的'零'，然后分割
-    _HZ = _HZ.replace(/零/g,'').split('');
-    var res = [];
-    var temp = '';
-    var location = -10000;//设置一个超大数
-    _HZ.map(function(n,i){
-        var thisLocation = NUM_UNIT_ARRAY.indexOf(n);
-        if(thisLocation >= 0){
-            if(thisLocation - location < -1){
-                for(var loc = 1; loc < location - thisLocation; loc ++){
-                    res.push(NUM_ARRAY[0]);
+
+//处理中文数字转阿拉伯数字
+function parseChineseNumber(_HZ) {
+    if(!_HZ || typeof _HZ !== 'string') return 0;
+    if(_HZ === NUM_ARRAY[0]) return 0; // "零"
+    
+    // 检查是否包含无效字符
+    var validChars = NUM_ARRAY.concat(UNIT_ARRAY).concat(NUM_UNIT_ARRAY);
+    for(var i = 0; i < _HZ.length; i++) {
+        if(validChars.indexOf(_HZ[i]) === -1) {
+            return 0; // 包含无效字符返回0
+        }
+    }
+    
+    // 检查单独的单位字符
+    if(UNIT_ARRAY.indexOf(_HZ) >= 0 || NUM_UNIT_ARRAY.indexOf(_HZ) >= 0) {
+        return 0;
+    }
+    
+    // 新增：检查无效格式
+    // 1. 零开头后面跟数字+单位的情况（如"零壹万"）
+    if(_HZ.indexOf('零') === 0 && _HZ.length > 1) {
+        var afterZero = _HZ.substring(1);
+        // 如果零后面直接跟着数字+大单位，这是无效格式
+        for(var j = 0; j < NUM_UNIT_ARRAY.length; j++) {
+            if(afterZero.indexOf(NUM_UNIT_ARRAY[j]) >= 0) {
+                return 0;
+            }
+        }
+    }
+    
+    // 2. 检查单位前是否缺少数字（如"万零壹"、"拾万壹"）
+    for(var k = 0; k < NUM_UNIT_ARRAY.length; k++) {
+        var unit = NUM_UNIT_ARRAY[k];
+        var unitPos = _HZ.indexOf(unit);
+        if(unitPos === 0) { // 单位在开头
+            return 0;
+        }
+    }
+    
+    // 2.5 检查小单位在开头的情况（如"拾万壹"）
+    for(var m = 0; m < UNIT_ARRAY.length; m++) {
+        var smallUnit = UNIT_ARRAY[m];
+        if(_HZ.indexOf(smallUnit) === 0) { // 小单位在开头且后面跟大单位
+            for(var n = 0; n < NUM_UNIT_ARRAY.length; n++) {
+                if(_HZ.indexOf(NUM_UNIT_ARRAY[n]) > 0) {
+                    return 0; // 如"拾万壹"
                 }
             }
-            res.push(temp);
-            temp = '';
-            location = thisLocation;
-        }else{
-            temp += n;
-            if(i == _HZ.length - 1) res.push(temp);
         }
-    });
-    return res;
-}
-
-function switchHz(_HZ){
-    if(!_HZ) return '';
-    if(_HZ == NUM_ARRAY[0]) return '0000';
-    _HZ = _HZ.split('');
-    var res = 0;
+    }
+    
+    // 3. 检查单位顺序错误（如"壹万拾"、"壹亿万"）
+    var hasWan = _HZ.indexOf('万') >= 0;
+    var hasYi = _HZ.indexOf('亿') >= 0;
+    
+    if(hasYi && hasWan) {
+        var wanPos = _HZ.indexOf('万');
+        var yiPos = _HZ.indexOf('亿');
+        if(wanPos > yiPos) { // 万在亿之后是正确的，但需要检查亿万之间有无数字
+            var betweenYiWan = _HZ.substring(yiPos + 1, wanPos);
+            // 如果亿和万之间没有任何数字字符，这是错误的（如"壹亿万"）
+            var hasNumberBetween = false;
+            for(var p = 1; p < NUM_ARRAY.length; p++) { // 跳过零
+                if(betweenYiWan.indexOf(NUM_ARRAY[p]) >= 0) {
+                    hasNumberBetween = true;
+                    break;
+                }
+            }
+            if(!hasNumberBetween) {
+                return 0; // "壹亿万" 这样的格式无效
+            }
+        } else if(wanPos < yiPos) {
+            return 0; // 万在亿之前是错误的
+        }
+    }
+    
+    // 4. 检查小单位在大单位后面（如"壹万拾"）
+    if(hasWan) {
+        var wanPos = _HZ.indexOf('万');
+        var afterWan = _HZ.substring(wanPos + 1);
+        // 如果万后面直接跟小单位且没有数字，这是无效的
+        for(var m = 0; m < UNIT_ARRAY.length; m++) {
+            if(afterWan === UNIT_ARRAY[m]) {
+                return 0; // 如"壹万拾"
+            }
+        }
+    }
+    
+    var result = 0;
     var temp = 0;
-    _HZ.map(function(n,i){
-        if(i % 2 == 0){
-            temp = NUM_ARRAY.indexOf(n);
-            if(i == _HZ.length - 1) res += temp;
-        }else{
-            var z = 3 - UNIT_ARRAY.indexOf(n);
-            res += (temp * Math.pow(10,z));
+    var billion = 0;
+    var million = 0;
+    
+    // 处理亿
+    if(_HZ.indexOf('亿') >= 0) {
+        var parts = _HZ.split('亿');
+        if(parts[0]) {
+            billion = parseSmallNumber(parts[0]) * 100000000;
         }
-    });
-    return res;
-
+        _HZ = parts[1] || '';
+    }
+    
+    // 处理万
+    if(_HZ.indexOf('万') >= 0) {
+        var parts = _HZ.split('万');
+        if(parts[0]) {
+            million = parseSmallNumber(parts[0]) * 10000;
+        }
+        _HZ = parts[1] || '';
+    }
+    
+    // 处理剩余部分（千以下）
+    if(_HZ) {
+        temp = parseSmallNumber(_HZ);
+    }
+    
+    return billion + million + temp;
 }
+
+// 解析千以下的中文数字
+function parseSmallNumber(_HZ) {
+    if(!_HZ) return 0;
+    if(_HZ === NUM_ARRAY[0]) return 0;
+    
+    var result = 0;
+    var temp = 0;
+    
+    for(var i = 0; i < _HZ.length; i++) {
+        var char = _HZ[i];
+        var numIndex = NUM_ARRAY.indexOf(char);
+        var unitIndex = UNIT_ARRAY.indexOf(char);
+        
+        if(numIndex > 0) {
+            // 是数字（跳过零）
+            temp = numIndex;
+        } else if(unitIndex >= 0) {
+            // 是单位
+            var unitValue = Math.pow(10, 3 - unitIndex);
+            if(temp === 0) temp = 1; // 处理"拾"、"佰"等前面没有数字的情况
+            result += temp * unitValue;
+            temp = 0;
+        }
+    }
+    
+    result += temp; // 加上个位数
+    return result;
+}
+
 //转换小数部分
 function switchDecimalHz(_HZ){
     if(!_HZ) return '';
-    _HZ = _HZ.split('');
-    if(_HZ.length === 0) return '';
-    var res = ['.'];
-    _HZ.map(function(n){
-        res.push(NUM_ARRAY.indexOf(n));
-    });
-    return res.join('');
+    var result = '.';
+    for(var i = 0; i < _HZ.length; i++) {
+        var char = _HZ[i];
+        var numIndex = NUM_ARRAY.indexOf(char);
+        if(numIndex >= 0) {
+            result += numIndex;
+        }
+    }
+    return result === '.' ? '' : result;
 }
 
 function joinHz(_HZ){
-    if(!_HZ || _HZ == NUM_ARRAY[0]) return 0;
-    _HZ = dealHz(_HZ);
-    var HZ_ARRAY = splitHz(_HZ[0]);
-    var decimalPart = switchDecimalHz(_HZ[1]);
-    var res = '';
-    HZ_ARRAY.map(function(n){
-        var temp = switchHz(n);
-        res = res + '' + temp;
-    });
-    return res + decimalPart;
+    if(!_HZ || typeof _HZ !== 'string') return 0;
+    if(_HZ === NUM_ARRAY[0]) return 0; // "零"
+    
+    var parts = dealHz(_HZ);
+    
+    // 检查小数格式的有效性
+    if(parts.length > 1) {
+        // 1. 检查是否有多个点（如"壹点点贰"）
+        if(_HZ.split(POINT).length > 2) {
+            return 0;
+        }
+        
+        // 2. 检查"壹点"这样缺少小数部分的情况
+        if(parts[1] === '') {
+            return 0;
+        }
+    }
+    
+    var integerPart = parseChineseNumber(parts[0]);
+    var decimalPart = switchDecimalHz(parts[1]);
+    
+    if(decimalPart) {
+        return parseFloat(integerPart + decimalPart);
+    }
+    
+    return integerPart;
 }
 
 export const toCn = joinNum;
