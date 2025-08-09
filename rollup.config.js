@@ -1,6 +1,6 @@
 const defineConfig = require('rollup').defineConfig;
-// 使用 require 语法导入 Babel 插件
-const babel = require('rollup-plugin-babel');
+// TypeScript plugin for Rollup
+const typescript = require('@rollup/plugin-typescript');
 // 使用 require 语法导入 Node Resolve 插件
 const resolve = require('@rollup/plugin-node-resolve');
 // 使用 require 语法导入 CommonJS 插件
@@ -22,7 +22,7 @@ const banner = `/*!
  */`;
 
 module.exports = defineConfig({
-    input: 'src/cn-nm.js',
+    input: 'src/cn-nm.ts',
     output: [
         {
             file: `dist/${libName}.cjs.js`,
@@ -47,7 +47,12 @@ module.exports = defineConfig({
         },
     ],
     plugins: [
-        babel(),
+        typescript({
+            tsconfig: './tsconfig.json',
+            declaration: true,
+            declarationDir: './dist',
+            rootDir: './src'
+        }),
         resolve(),
         commonjs(),
         terser()
