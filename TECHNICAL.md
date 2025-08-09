@@ -6,8 +6,7 @@
 ```
 cn-nm/
 ├── src/                    # TypeScript 源码
-│   ├── cn-nm.ts           # 主要实现文件
-│   └── cn-nm.js           # 原 JavaScript 版本（保留）
+│   └── cn-nm.ts           # TypeScript 源文件
 ├── dist/                  # 编译输出
 │   ├── cn-nm.cjs.js       # CommonJS 格式
 │   ├── cn-nm.es.js        # ES Modules 格式

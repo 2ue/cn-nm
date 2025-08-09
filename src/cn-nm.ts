@@ -491,12 +491,12 @@ function joinHz(chineseStr: string): number {
   }
 
   const integerPart = parseChineseNumber(parts[0]);
-  
+
   // 如果整数部分解析为0，需要验证是否是有效的"零"还是无效输入
   if (integerPart === 0 && parts[0] !== '' && parts[0] !== NUM_ARRAY[0]) {
     return 0; // 整数部分无效
   }
-  
+
   const decimalPart = switchDecimalHz(parts[1]);
 
   if (decimalPart) {
