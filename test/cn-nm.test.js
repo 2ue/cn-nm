@@ -3,7 +3,7 @@
  * 基于正常认知的期望行为编写
  */
 
-const { toCn, toNm } = require('../dist/cn-nm.cjs.js');
+const { toCn, toNm } = require('../src/cn-nm.ts');
 
 describe('cn-nm 中文数字转换库测试', () => {
   

@@ -40,7 +40,7 @@ jobs:
           npm run lint
           npm run type-check
 
-      # 5. 运行测试
+      # 5. 运行测试 (测试源码)
       - name: Run tests
         run: npm test
 
@@ -48,7 +48,17 @@ jobs:
       - name: Build project
         run: npm run build
 
-      # 7. 获取版本信息
+      # 7. 测试构建后的文件
+      - name: Test built files
+        run: |
+          node -e "
+          const { toCn, toNm } = require('./dist/cn-nm.cjs.js');
+          console.log('✅ CJS toCn Test:', toCn(123) === '壹佰贰拾叁' ? 'PASS' : 'FAIL');
+          console.log('✅ CJS toNm Test:', toNm('壹佰贰拾叁') === 123 ? 'PASS' : 'FAIL');
+          console.log('✅ Build verification completed');
+          "
+
+      # 8. 获取版本信息
       - name: Get version
         id: version
         run: |
@@ -57,21 +67,21 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      # 8. 创建发布包
+      # 9. 创建发布包
       - name: Create release archive
         run: |
           mkdir -p release-temp
           cp -r dist package.json README.md TECHNICAL.md doc release-temp/
           cd release-temp && tar -czf ../cn-nm-${{ steps.version.outputs.tag }}.tar.gz .
 
-      # 9. 发布到 NPM
+      # 10. 发布到 NPM
       - name: Publish to NPM
         uses: JS-DevTools/npm-publish@v3
         with:
           token: ${{ secrets.NPM_TOKEN }}
           access: public
 
-      # 10. 创建 GitHub Release  
+      # 11. 创建 GitHub Release  
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
