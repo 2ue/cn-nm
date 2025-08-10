@@ -1,6 +1,6 @@
 {
   "name": "cn-nm",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "description": "A tool is that can inner-transformation Number and Chinese",
   "main": "dist/cn-nm.cjs.js",
   "module": "dist/cn-nm.es.js",
