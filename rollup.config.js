@@ -2,7 +2,7 @@ const { defineConfig } = require('rollup');
 const typescript = require('@rollup/plugin-typescript');
 const resolve = require('@rollup/plugin-node-resolve');
 const commonjs = require('@rollup/plugin-commonjs');
-const { terser } = require('rollup-plugin-terser');
+const terser = require('@rollup/plugin-terser');
 const pkg = require('./package.json');
 
 // 环境变量
