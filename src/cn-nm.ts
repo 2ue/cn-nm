@@ -277,7 +277,7 @@ function parseChineseNumber(chineseStr: string): number {
   // 检查明显不合理的重复字符（如"壹壹"、"万万"等连续重复）
   // 但允许正常的重复使用（如"壹拾壹"中的壹重复使用是合理的）
   for (let i = 0; i < chineseStr.length - 1; i++) {
-    if (chineseStr[i] === chineseStr[i + 1]) {
+    if (chineseStr[i] === chineseStr[i + 1] && UNIT_ARRAY.indexOf(chineseStr[i]) === -1 && NUM_ARRAY.indexOf(chineseStr[i]) === -1) {
       // 连续相同字符，生活中不合理
       return 0;
     }
